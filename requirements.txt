@@ -1,0 +1,8 @@
+# pip install -t lib -r requirements.txt
+
+requests==2.18.4
+Flask==0.12.2
+werkzeug==0.12.2
+GoogleAppEngineCloudStorageClient==1.9.22.1
+google-cloud-storage==1.6.0
+openpyxl==2.4.9

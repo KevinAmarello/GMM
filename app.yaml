@@ -1,0 +1,49 @@
+runtime: python27
+threadsafe: true
+api_version: 1
+instance_class: B4_1G
+default_expiration: "1s"
+service: frontend
+
+
+manual_scaling:
+  instances: 1
+
+skip_files:
+ - ^node_modules/(?!node\.js$).*
+ - ^(.*/)?.*\.py[co]$
+ - ^bower_components$
+ - ^app$
+ - ^test$
+ - ^.git$
+
+libraries:
+- name: flask
+  version: "latest"
+- name: MySQLdb
+  version: "latest"
+- name: ssl
+  version: "latest"
+
+env_variables:
+  CLOUDSQL_CONNECTION_NAME: gnp-auttarifasgmm-qa:us-central1:gnp-gmm
+  CLOUDSQL_USER: GNP
+  CLOUDSQL_PASSWORD: gnpuser
+
+handlers:
+- url: /.*
+  script: main.app
+
+- url: /
+  static_files: dist/index.html
+  upload: dist/index\.html
+
+- url: /bower_components/
+  static_dir: bower_components
+
+
+- url: /scripts/
+  static_dir: dist/scripts
+
+- url: /styles/
+  static_dir: dist/styles
