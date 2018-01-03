@@ -31,10 +31,10 @@ def handleService(file):
 	logging.debug("DataValidationService: handleService")
 	try:
 		# Check if the control cifras table exists
-		try:
-			SQLManagerClass()._getTable("CONTROL_CIFRAS")
-		except:
-			return Response("Favor de ingresar el control de cifras primero.", status = 420)
+		#try:
+		#	SQLManagerClass()._getTable("CONTROL_CIFRAS")
+		#except:
+		#	return Response("Favor de ingresar el control de cifras primero.", status = 420)
 		# Save file to Storage
 		url = StorageManager.saveFilePBA(file)
 	except:
@@ -61,7 +61,7 @@ def backgroundValidation():
 		pbaManager = ExcelManagerClass(pbaFile, True)
 		
 		createDatabase(pbaManager)
-		registryControl()
+		#registryControl()
 		checkComodin()
 		Notifier.notifByMail("DV", True)
 		return Response ("Process done", status = 200)
