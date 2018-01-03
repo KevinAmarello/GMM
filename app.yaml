@@ -31,7 +31,22 @@ env_variables:
   CLOUDSQL_PASSWORD: gnpuser
 
 handlers:
-- url: /.*
+- url: /uploadPBA
+  script: main.app
+
+- url: /queueValidate
+  script: main.app
+
+- url: /exportFiles
+  script: main.app
+
+- url: /queueExport
+  script: main.app
+
+- url: /isThereCC
+  script: main.app
+
+- url: /uploadCC
   script: main.app
 
 - url: /
