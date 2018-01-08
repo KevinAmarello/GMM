@@ -26,6 +26,10 @@ angular.module('gmmApp')
         //console.log(fd.file)
         return Restangular.one('uploadPBA').withHttpConfig({transformRequest: angular.identity})
         .customPOST(fd, '', undefined, {'Content-Type': undefined})
+      },
+      cargaCifras: function(cifras) {
+        return Restangular.all('uploadCC').withHttpConfig({timeout: 60000}).post(cifras);
       }
+
     };
   });
