@@ -22,7 +22,9 @@ def _getCreateTableQuery(title):
 		'KTPTDFT': "CREATE TABLE KTPTDFT(FEVALOR DEC(8,0), CDPRODTE CHAR(10), CDPRODCO CHAR(10), TCNUMVER DEC(4), CDPLAN CHAR(5), TCSEXO CHAR(1), EDEDAD DEC(5,0), TCTIDEDU CHAR(1), CDDEDUCI CHAR(4), VADEDUNA DEC(17,3), VADEDUIN DEC(17,3), VAFCTTAR DEC(7,6), CDUNDENA CHAR(3), CDUNDEIN CHAR(3))",
 		'KTPT6WT': "CREATE TABLE KTPT6WT(TCNUMVER DEC(4), CDPLAN CHAR(5), CDREGION CHAR(8), CDDEDUCI CHAR(4), VADEDUNA DEC(17,3), VADEDUIN DEC(17,3), VAFCTTAR DEC(7,6), CDUNDENA CHAR(3), CDUNDEIN CHAR(3), LLAVE CHAR(70), VALIDA CHAR(10))",
 		'KTPTDOT': "CREATE TABLE KTPTDOT(FEVALOR DEC(8,0), CDPRODTE CHAR(10), CDPRODCO CHAR(10), TCNUMVER DEC(4), CDPLAN CHAR(5), CDREGION CHAR(8), CDCOAINT CHAR(1), CDDEDUCI CHAR(4), EDAD DEC(5,0), VACOANAC DEC(17,3), VACOAINT DEC(17,3), VAFCTTAR DEC(15,3), VACOASVI DEC(17,3), LLAVE CHAR(70), VALIDA CHAR(10))",
-		'KTPTCQT': "CREATE TABLE KTPTCQT(FEVALOR DEC(8,0), CDPRODTE CHAR(10), CDPRODCO CHAR(10), CDDEDUCI CHAR(4), CDGRDEDU DEC(4))"
+		'KTPTCQT': "CREATE TABLE KTPTCQT(FEVALOR DEC(8,0), CDPRODTE CHAR(10), CDPRODCO CHAR(10), CDDEDUCI CHAR(4), CDGRDEDU DEC(4))",
+		'KTPTCLT': "CREATE TABLE KTPTCLT(FEVALOR DEC(8,0), CDPRODTE CHAR(10), CDPRODCO CHAR(10), CDMCT CHAR(10), CDTIPPOL CHAR(2), EDEDAD DEC(5,0), CDCOAINT CHAR(1), CDDEDUCI CHAR(4), INTABULA CHAR(4), CDREGGMM CHAR(8), VAPRICOB DEC(15,3))",
+		'KTPT8BT': "CREATE TABLE KTPT8BT(CDPRODTE CHAR(10), CDPRODCO CHAR(10), CDMCT CHAR(10), FEVALOR DEC(8,0), CDPLAN CHAR(5), CDTIPPOL CHAR(2), CDREGION CHAR(8), CPASLINN DEC(17,3), CPASLINI DEC(17,3)"
 	}
 	return switcher.get(title)
 # END [_getCreateTableQuery]
@@ -51,84 +53,9 @@ def _getInsertTableQuery(title):
 		'KTPTDFT': "INSERT INTO {title} VALUES({v[0]}, {v[1]}, {v[2]}, {v[3]}, {v[4]}, {v[5]}, {v[6]}, {v[7]}, {v[8]}, {v[9]}, {v[10]}, {v[11]}, {v[12]}, {v[13]})",
 		'KTPT6WT': "INSERT INTO {title} VALUES({v[0]}, {v[1]}, {v[2]}, {v[3]}, {v[4]}, {v[5]}, {v[6]}, {v[7]}, {v[8]}, {v[9]}, {v[10]})",
 		'KTPTDOT': "INSERT INTO {title} VALUES({v[0]}, {v[1]}, {v[2]}, {v[3]}, {v[4]}, {v[5]}, {v[6]}, {v[7]}, {v[8]}, {v[9]}, {v[10]}, {v[11]}, {v[12]}, {v[13]}, {v[14]})",
-		'KTPTCQT': "INSERT INTO {title} VALUES({v[0]}, {v[1]}, {v[2]}, {v[3]}, {v[4]})"
+		'KTPTCQT': "INSERT INTO {title} VALUES({v[0]}, {v[1]}, {v[2]}, {v[3]}, {v[4]})",
+		'KTPTCLT': "INSERT INTO {title} VALUES({v[0]}, {v[1]}, {v[2]}, {v[3]}, {v[4]}, {v[5]}, {v[6]}, {v[7]}, {v[8]}, {v[9]}, {v[10]})",
+		'KTPT8BT': "INSERT INTO {title} VALUES({v[0]}, {v[1]}, {v[2]}, {v[3]}, {v[4]}, {v[5]}, {v[6]}, {v[7]}, {v[8]})"
 	}
 	return switcher.get(title)
 # END [_getInsertTableQuery]
-
-
-
-
-
-# START [columnFormatDictionary]
-# Used to map Fields with their format
-def _columnFormatDictionary(columnName):
-	switcher = {
-		'AAVIGENC': 'DEC(4)',
-		'CDCOAINT': 'CHAR(1)',
-		'CDDEDUCI': ['CHAR(4)','ZZZZ'],
-		'CDDESTIN': ['CHAR(1)','X'],
-		'CDESTAN': ['CHAR(1)','Z'],
-		'CDGRDEDU': ['DEC(4)',9999],
-		'CDMCT': 'CHAR(10)',
-		'CDMOSAEX': 'CHAR(3)',
-		'CDMOSANA': 'CHAR(3)',
-		'CDPARAM1': 'CHAR(10)',
-		'CDPARAM2': 'CHAR(10)',
-		'CDPLAN': ['CHAR(5)','ZZZZZ'],
-		'CDPRODCO': ['CHAR(10)','ZZZZZZZZZZ'],
-		'CDPRODTE': ['CHAR(10)','ZZZZZZZZZZ'],
-		'CDREGION': ['CHAR(8)','ZZZZZZZZ'],
-		'CDREGGMM': ['CHAR (8)','ZZZZZZZZ'],
-		'CDSAPERM': 'CHAR(3)',
-		'CDSUASEG': 'CHAR(2)',
-		'CDTIPNEG': 'CHAR(1)',
-		'CDTIPPOL': 'CHAR(2)',
-		'CDUNDEIN': 'CHAR(3)',	
-		'CDUNDENA': 'CHAR(3)',
-		'CDZONCEE': 'CHAR(1)',
-		'CPASEGUR': 'DEC(15,3)',
-		'CPASLINI': 'DEC(17,3)',
-		'CPASLINN': 'DEC(17,3)',
-		'CPTARIF': 'DEC(15,3)',
-		'CTNUANIN': 'DEC(3)',
-		'CTNUANFI': 'DEC(3)',
-		'EDEDAD': ['DEC(5,0)',999],
-		'FECDESDE': 'DEC (8)',
-		'FETARIFA': 'DEC (8)',
-		'FEVALOR': 'DEC(8,0)',
-		'IMPRIMTA': 'DEC(15,3)',
-		'IMSANAC': 'DEC(15,3)',
-		'IMSAEXT': 'DEC(15,3)',
-		'INCONTMM': ['CHAR(1)','X'],
-		'INNICONT': 'CHAR(5)',
-		'INNIORIG': 'CHAR(5)',
-		'INTABULA': ['CHAR(4)','ZZZZ'],
-		'INTIPLAN': ['CHAR(5)','ZZZZZ'],
-		"LLAVE": 'CHAR(21)',
-		'NUASGTIT': 'DEC(8)',
-		'TCCDMODE': 'CHAR(3)',
-		'TCNUMVER': 'DEC(4)',
-		'TCSEGMEN': 'CHAR(2)',
-		'TCSEGPLA': 'CHAR (2)',
-		'TCSEXO': ['CHAR(1)','Z'],
-		'TCTIDEDU': 'CHAR(1)',
-		'TCTIPMOV': 'CHAR(1)',
-		'TCTISUAS': ['CHAR(1)','Z'],
-		'VACOAINT': 'DEC(17,3)',
-		'VACOANAC': 'DEC(17,3)',
-		'VACOASVI': 'DEC(17,3)',
-		'VACOSEGU': ['DEC(15,3)',999999999],	
-		'VADEDUIN': 'DEC(17,3)',
-		'VADEDUNA': 'DEC(17,3)',
-		'VAFACTAR': 'DEC(15,3)',
-		'VAFCTTAR': 'DEC(7,6)',
-		'VALIDA': 'DEC(1)',
-		'VALIMCCI': ['DEC(17,3)',999999999],
-		'VAPRICOB': 'DEC(15,3)',
-		'VASAEGIN': 'DEC(15,3)',
-		'VASAEGNA': 'DEC(15,3)',
-		'VASUASEG': ['DEC(15,3)',999999999]
-	}
-	return switcher.get(columnName)
-# END [columnFormatDictionary]

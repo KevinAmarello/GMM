@@ -119,7 +119,7 @@ def createDatabase(excelManager):
 		for sheetName in listExcelSheetNames:
 			logging.debug("Loop on sheet: " + sheetName)
 			# Control name 
-			if(len(sheetName)==7 and sheetName != "KTPTCLT" and sheetName != "KTPT8BT"):
+			if(len(sheetName)==7):
 				#Drop table if exists
 				dropQuery = sqlManager._getDropTableQuery(sheetName)
 				sqlManager._executeQuery(dropQuery)
