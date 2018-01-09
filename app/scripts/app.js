@@ -21,7 +21,7 @@ angular
     'file-model'
   ])
   .config(function ($routeProvider, $stateProvider, $urlRouterProvider, RestangularProvider) {
-    RestangularProvider.setBaseUrl('https://frontend-dot-test-amarello-1.appspot.com');
+    RestangularProvider.setBaseUrl('https://frontend-dot-gnp-auttarifasgmm-qa.appspot.com');
     $urlRouterProvider.otherwise('/archivo');
     $stateProvider
     .state('main', {
@@ -48,6 +48,15 @@ angular
         'main@main': {
          templateUrl: 'views/menu_principal.html',
          controller: 'MenuCtrl'
+        }
+      }
+    })
+    .state('main.cifras', {
+      url:'cifras',
+      views: {
+        'main@main': {
+          templateUrl:'views/ccontrl.html',
+          controller: 'CifrasCtrl'
         }
       }
     });
