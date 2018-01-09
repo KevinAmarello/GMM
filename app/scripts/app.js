@@ -31,7 +31,8 @@ angular
           templateUrl: 'views/content.html'
         },
         'header@main': {
-          templateUrl: 'views/header.html'
+          templateUrl: 'views/header.html',
+          controller: 'HeaderCtrl'
         },
         /*'main@main': {
           templateUrl: 'views/main.html'

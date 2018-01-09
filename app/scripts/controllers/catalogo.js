@@ -2,13 +2,13 @@
 
 /**
  * @ngdoc function
- * @name gmmmApp.controller:CatalogosCtrl
+ * @name gmmmApp.controller:CatalogoCtrl
  * @description
- * # CatalogosCtrl
+ * # CatalogoCtrl
  * Controller of the gmmmApp
  */
 angular.module('gmmApp')
-  .controller('CatalogosCtrl', function () {
+  .controller('CatalogoCtrl', function () {
     this.awesomeThings = [
       'HTML5 Boilerplate',
       'AngularJS',
