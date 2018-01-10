@@ -10,7 +10,7 @@ def getSheetWithComodin():
 # START [getComodinColumnBySheet]
 # Returns the comodin columns for each sheet
 def getComodinColumnBySheet(sheetName):
-	{
+	switcher = {
 		"KTPTCNT": ["INTABULA", "CDCOAINT", "CDREGGMM", "INCONTMM", "CDPLAN"],
 		"KTPTCOT": ["CDREGGMM", "CDDEDUCI"],
 		"KTPTCPT": ["CDPLAN", "CDREGGMM", "CDDEDUCI", "CDPRODCO"],
