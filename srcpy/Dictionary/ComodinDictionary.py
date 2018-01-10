@@ -2,7 +2,6 @@
 # Returns the list of sheets that contain comodines
 def getSheetWithComodin():
 	return ["KTPTCNT", "KTPTCOT", "KTPTCPT", "KTPTDOT", "KTPT6WT", "KTPTDIT", "KTPTBCT", "KTPTDJT", "KTPTDMT", "KTPTDLT"] #
-	# Add 6WT
 	#"KTPTCLT"
 # END [getSheetWithComodin]
 
@@ -20,7 +19,7 @@ def getComodinColumnBySheet(sheetName):
 		"KTPTDMT": ["CDPRODCO"],
 		"KTPTBCT": ["TCSEGPLA"], 
 		"KTPT6WT": ["CDPLAN"],
-		#"KTPTCLT": ["CDPRODCO", "TCSEGMEN", "INTABULA"],
+		"KTPTCLT": ["CDCOAINT"],
 		"KTPTDLT": ["CDPLAN"]
 	}
 	return switcher.get(sheetName)
@@ -36,7 +35,6 @@ def getConditionedComodinColumnBySheet(sheetName):
 		"KTPTCPT": ["CDPLAN", "CDREGGMM", "CDDEDUCI"],
 		"KTPTDOT": ["CDPLAN", "CDREGION", "CDDEDUCI"],
 		"KTPTDJT": ["VACOSEGU", "VALIMCCI"]
-		# Add 6WT
 	}
 	return switcher.get(sheetName)
 # END [getComodinColumnBySheet]
@@ -71,8 +69,8 @@ def getComodinValueBySheet(sheetName, comodin):
 		("KTPTDMT", "CDPRODCO"): "ZZZZZZZZZZ",
 		("KTPTBCT", "TCSEGPLA"): "ZZ",
 		("KTPT6WT", "CDPLAN"): "ZZZZZ",
-		("KTPTDLT", "CDPLAN"): "ZZZZZ"
-		# TODO KTPTCLT
+		("KTPTDLT", "CDPLAN"): "ZZZZZ",
+		("KTPTCLT", "CDCOAINT"): "Z" 
 	}
 	return switcher.get((sheetName, comodin))
 # END [getComodinValueBySheet]
@@ -96,7 +94,6 @@ def getConditionedComodinValueBySheet(sheetName, comodin):
 		("KTPTDOT", "CDDEDUCI"): "XXXX",
 		("KTPTDJT", "VACOSEGU"): "999999999999",
 		("KTPTDJT", "VALIMCCI"): "999999999999"
-		#TODO 6WT 
 	}
 	return switcher.get((sheetName, comodin))
 # END [getComodinValueBySheet]
@@ -143,7 +140,7 @@ def getIntegerColumnBySheet(sheetName):
 		"KTPTDMT": ["CDPRODCO"],
 		"KTPTBCT": ["TCSEGPLA"], 
 		"KTPT6WT": ["CDPLAN"],
-		#"KTPTCLT": ["CDPRODCO", "TCSEGMEN", "INTABULA"],
+		"KTPTCLT": ["CDCOAINT", "TCSEGMEN", "INTABULA"],
 		"KTPTDLT": ["CDPLAN"]
 	}
 	return switcher.get(sheetName)
