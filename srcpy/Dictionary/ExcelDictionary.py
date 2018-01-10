@@ -14,7 +14,7 @@ def firstLineOfDataDictionary(sheetName):
 		'KTPTCKT': 18,
 		'KTPTDJT': 17,
 		'KTPTDNT': 18,
-		'KTPTCNT': 23,
+		'KTPTCNT': 22,
 		'KTPTCPT': 20,
 		'KTPTCOT': 18,
 		'KTPTDFT': 22,
