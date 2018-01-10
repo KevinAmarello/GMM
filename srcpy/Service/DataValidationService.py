@@ -62,7 +62,7 @@ def backgroundValidation(url):
 		
 		createDatabase(pbaManager)
 		#registryControl()
-		#checkComodin()
+		checkComodin()
 		StorageManager.writeResultInHistoric(url, "Exito")
 		Notifier.notifByMail("DV", True)
 		return Response ("Process done", status = 200)
