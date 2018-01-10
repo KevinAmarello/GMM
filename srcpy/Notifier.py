@@ -31,6 +31,7 @@ def notifByMail(operation, success, info = None):
 	contactFile = StorageManager.openFile(urlContact, 'r')
 	contactList = []
 	logging.debug("Contact file opened")
+	logging.debug("Info: " + str(info))
 
 	for line in contactFile:
 		mail = line.rsplit()[0]
@@ -39,13 +40,16 @@ def notifByMail(operation, success, info = None):
 
 	payload = {}
 	payload['to'] = contactList
-	logging.debug("Contact list: " + str(contactList))
 
-	# Clean body
-	if info is not None:
-		info = info.replace("\"", "")
-		info = info.replace("\'", "")
-
+	if operation != "DV":
+		# Clean body
+		if info is not None:
+			info = info.replace("\"", "")
+			info = info.replace("\'", "")
+	else:
+		if info is not None:
+			info = prepareBodyDV(info)
+		
 	logging.debug("Info: " + str(info))
 
 	if operation == "FES":
@@ -59,12 +63,44 @@ def notifByMail(operation, success, info = None):
 	if operation == "DV":
 		payload['subject'] = "Resultado de la validacion de datos."
 		if success:
-			payload['body'] = "El proceso de validacion de datos sucedio exitosamente."
+			payload['body'] = "Proceso realizado con exito."
 		else:
-			payload['body'] = "Un error ocurrio en el proceso de validacion: {0}. Favor de reintentar.".format(info)
+			payload['body'] = "Se han encontrado los siguientes errores al ejecutar el proceso:<br> {0}Favor de verificar el documento e intentar de nuevo.".format(info)
+
+	if operation == "AC":
+		payload['subject'] = "Resultado de la aplicacion de catalogo."
+		if success:
+			payload['body'] = "El proceso de aplicacion de catalogo sucedio exitosamente."
+		else:
+			payload['body'] = "Un error ocurrio en el proceso de aplicacion: {0}. Favor de verificar el documento e intentar de nuevo.".format(info)
 
 	logging.debug(str(json.dumps(payload)))
 
 	headers = {'content-type': 'application/json'}
 	requests.post("http://api-dev.oscp.gnp.com.mx/notifier/notification/mail", data=json.dumps(payload), headers = headers)
 # END [notifByMail]
+
+
+# START [prepareBodyDV]
+def prepareBodyDV(info):
+	"""
+		In the case of the validation Data, info is a dictionary
+		sheetName : [Errors]
+		This method formats the mail's body to clean it up.
+
+		Input:
+			info - dictionary
+
+		Output:
+			info - HTML format
+	"""
+	logging.debug("Entry prepareBody")
+	infoTemp = "" 
+	
+	for k in info.keys():
+		logging.debug("Table " + k)
+		for v in info[k]:
+			logging.debug("Error " + v)
+			infoTemp += v + " en tabla " + k +"<br>"
+	return infoTemp
+# END [prepareBodyDV]

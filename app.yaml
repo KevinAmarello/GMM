@@ -49,6 +49,15 @@ handlers:
 - url: /uploadCC
   script: main.app
 
+- url: /uploadCatalog
+  script: main.app
+
+- url: /queueApplyCatalog
+  script: main.app
+
+- url: /getHistory
+  script: main.app
+
 - url: /
   static_files: dist/index.html
   upload: dist/index\.html

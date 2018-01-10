@@ -3,7 +3,7 @@ import logging
 
 from flask import Flask, request, Response
 
-from srcpy.Service import FinalExportService, DataValidationService, RegControlService
+from srcpy.Service import FinalExportService, DataValidationService, RegControlService, CatalogApplyService, GetHistorialService
 
 app = Flask(__name__)
 
@@ -22,12 +22,12 @@ def validateData():
 		return response
 	except Exception as e:
 		logging.debug(str(e))
-		return Response("Un error ocurrio. Favor de reintentar.", status = 420)	
 
 @app.route('/queueValidate', methods=['POST'])
 def queueValidate():
 	logging.debug("***** Received request queueValidate *****")
-	return DataValidationService.backgroundValidation()
+	url = request.form['url']
+	return DataValidationService.backgroundValidation(url)
 
 ########### Final Export Service ############
 @app.route('/exportFiles', methods=['GET'])
@@ -56,3 +56,36 @@ def uploadCC():
 	response = RegControlService.uploadControlCifras(request)
 	response.headers['Access-Control-Allow-Origin'] = '*'
 	return response
+
+########## Catalog Apply Service ########################
+@app.route('/uploadCatalog', methods=['POST'])
+def uploadCatalog():
+	logging.debug('***** Received request uploadCatalog *****')
+	try:
+		response = []
+		if request.files['file'] is not None:
+			excelCatalog = request.files['file']
+			response = CatalogApplyService.handleService(excelCatalog)
+		else:
+			response = Response("Favor de seleccionar un archivo Excel.", status = 420)	
+		response.headers['Access-Control-Allow-Origin'] = '*'
+		return response
+	except Exception as e:
+		return str(e)
+
+@app.route('/queueApplyCatalog', methods=['POST'])
+def queueApply():
+	logging.debug('***** Received request queueApply *****')
+	url = request.form['url']
+	return CatalogApplyService.backgroundApply(url)
+
+
+########## GET Historial Service #######################
+
+@app.route('/getHistory', methods = ['GET'])
+def history():
+	logging.debug("***** Received request getHistory *****")
+	return GetHistorialService.handleService()
+	#response = GetHistorialService.handleService()
+	#response.headers['Access-Control-Allow-Origin'] = '*'
+	#return response

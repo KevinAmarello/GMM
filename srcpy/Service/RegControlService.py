@@ -38,20 +38,23 @@ def uploadControlCifras(request):
 		logging.debug("RegControlService creating table")
 		sqlManager._executeQuery(sqlManager._getCreateTableQuery("CONTROL_CIFRAS"))
 
-		# Get JSON
+		# GET JSON
 		logging.debug("RegControlService parsing JSON")
 		json = request.get_json()
 
-		# Insert values
 		for table in json.keys():
 			query = sqlManager._getInsertIntoCCQuery("\"" + str(table) + "\"", json[table])
 			logging.debug(str(query))
+
 			sqlManager._executeQuery(query)
 
+
+		fl = sqlManager._executeQuery("SELECT * FROM CONTROL_CIFRAS")
+		logging.debug(str(fl))
+
+		sqlManager._closeConnection()
 		return Response("El control de cifras ha sido tomado en cuenta.", status = 200)
 	except Exception as e:
 		logging.debug(str(e))
 		return Response(str(e), status = 500)
-	finally:
-		sqlManager._closeConnection()	
 # END [uploadControlCifras]

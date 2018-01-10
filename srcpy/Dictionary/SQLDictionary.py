@@ -29,10 +29,28 @@ def _getCreateTableQuery(title):
 	return switcher.get(title)
 # END [_getCreateTableQuery]
 
-# START [_getInsertTableQuery]
-# Used to insert values in the table
-def _getInsertTableQuery(title):
+
+# START [_getCatalogCreateTableQuery]
+# Used to create tables
+def _getCatalogCreateTableQuery(title):
 	switcher = {
+		"VERSION": "CREATE TABLE VERSION({v[0]} CHAR(8), {v[1]} CHAR(7), {v[2]} CHAR(10), {v[3]} CHAR(10), {v[4]} CHAR(5), {v[5]} CHAR(4), {v[6]} CHAR(4))",
+		"PRODUCTOS": "CREATE TABLE PRODUCTOS({v[0]} CHAR(10), {v[1]} CHAR(10), {v[2]} CHAR(20), {v[3]} CHAR(5), {v[4]} CHAR(20))",
+		"DEDUCIBLE": "CREATE TABLE DEDUCIBLE({v[0]} CHAR(4), {v[1]} CHAR(10), {v[2]} CHAR(5), {v[3]} CHAR(4))",
+		"SUMA ASEGURADA": "CREATE TABLE SUMA_ASEGURADA({v[0]} CHAR(4), {v[1]} CHAR(10), {v[2]} CHAR(5), {v[3]} CHAR(4))",
+		"CM": "CREATE TABLE CM({v[0]} CHAR(3), {v[1]} CHAR(10))",
+		"REGION": "CREATE TABLE REGION({v[0]} CHAR(10), {v[1]} CHAR(20))",		
+		"COASEGURO": "CREATE TABLE COASEGURO({v[0]} CHAR(3), {v[1]} CHAR(15))",
+		"Concentrado": "CREATE TABLE Concentrado(VERSION CHAR(7), {v[1]} CHAR(7), {v[2]} CHAR(7), SUMA_ASEGURADA CHAR(7), {v[4]} CHAR(7), {v[5]} CHAR(7), {v[6]} CHAR(7))"
+	}
+	return switcher.get(title)
+# END [_getCatalogCreateTableQuery]
+
+
+# START [_getInsertTableQuery]
+# Used to insert values in the table 
+def _getInsertTableQuery(title):
+	switcher = {	
 		'CONTROL_CIFRAS': "INSERT INTO CONTROL_CIFRAS VALUES({table}, {value})",
 		'KTPT8AT': "INSERT INTO {title} VALUES({v[0]}, {v[1]}, {v[2]}, {v[3]}, {v[4]}, {v[5]}, {v[6]}, {v[7]}, {v[8]})",
 		'KTPTDGT': "INSERT INTO {title} VALUES({v[0]}, {v[1]}, {v[2]}, {v[3]}, {v[4]}, {v[5]}, {v[6]})",
@@ -56,6 +74,24 @@ def _getInsertTableQuery(title):
 		'KTPTCQT': "INSERT INTO {title} VALUES({v[0]}, {v[1]}, {v[2]}, {v[3]}, {v[4]})",
 		'KTPTCLT': "INSERT INTO {title} VALUES({v[0]}, {v[1]}, {v[2]}, {v[3]}, {v[4]}, {v[5]}, {v[6]}, {v[7]}, {v[8]}, {v[9]}, {v[10]})",
 		'KTPT8BT': "INSERT INTO {title} VALUES({v[0]}, {v[1]}, {v[2]}, {v[3]}, {v[4]}, {v[5]}, {v[6]}, {v[7]}, {v[8]})"
+	}
+	return switcher.get(title)
+# END [_getInsertTableQuery]
+
+
+
+# START [_getCatalogInsertTableQuery]
+# Used to insert values in the table 
+def _getCatalogInsertTableQuery(title):
+	switcher = {
+		"VERSION": "INSERT INTO VERSION VALUES({v[0]}, {v[1]}, {v[2]}, {v[3]}, {v[4]}, {v[5]}, {v[6]})",
+		"PRODUCTOS": "INSERT INTO PRODUCTOS VALUES({v[0]}, {v[1]}, {v[2]}, {v[3]}, {v[4]})",
+		"DEDUCIBLE": "INSERT INTO DEDUCIBLE VALUES({v[0]}, {v[1]}, {v[2]}, {v[3]})",
+		"SUMA ASEGURADA": "INSERT INTO SUMA_ASEGURADA VALUES({v[0]}, {v[1]}, {v[2]}, {v[3]})",
+		"CM": "INSERT INTO CM VALUES({v[0]}, {v[1]})",
+		"REGION": "INSERT INTO REGION VALUES({v[0]}, {v[1]})",		
+		"COASEGURO": "INSERT INTO COASEGURO VALUES({v[0]}, {v[1]})",
+		"Concentrado": "INSERT INTO Concentrado VALUES({v[0]}, {v[1]}, {v[2]}, {v[3]}, {v[4]}, {v[5]}, {v[6]})"
 	}
 	return switcher.get(title)
 # END [_getInsertTableQuery]
