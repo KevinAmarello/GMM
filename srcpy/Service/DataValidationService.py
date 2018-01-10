@@ -62,7 +62,7 @@ def backgroundValidation(url):
 		
 		createDatabase(pbaManager)
 		#registryControl()
-		checkComodin()
+		#checkComodin()
 		StorageManager.writeResultInHistoric(url, "Exito")
 		Notifier.notifByMail("DV", True)
 		return Response ("Process done", status = 200)
@@ -136,23 +136,25 @@ def createDatabase(excelManager):
 				flod = ExcelManager.getFirstLineOfData(sheetName)
 				# Get all lines and slice them to get values only
 				tableDataList = list(sheet.rows)[flod-1:]
-				for line in tableDataList:
-					try:
-						valuesList = []
-						# Build valuesList
-						for cell in line[1:]:
-							if(cell is None or cell.value is None):
-								continue
-							if(cell is not None and cell.value is not None):
-								valuesList.append("\""+str(cell.value)+"\"")
-						# Formatting the SQL Query if there are values
-						if valuesList:
-							SQLQuery = sqlManager._getInsertIntoQuery(sheetName, valuesList)
-							sqlManager._executeQuery(SQLQuery)
-					except Exception as ex:
-						logging.debug("Exception: " + str(ex))
-						listError.append((sheetName, str(ex).replace("\"", "").replace("\'", "")))
-						continue
+				# Ignoring empty sheets
+				if len(tableDataList) != 0:
+					for line in tableDataList:
+						try:
+							valuesList = []
+							# Build valuesList
+							for cell in line[1:]:
+								if(cell is None or cell.value is None):
+									continue
+								if(cell is not None and cell.value is not None):
+									valuesList.append("\""+str(cell.value)+"\"")
+							# Formatting the SQL Query if there are values
+							if valuesList:
+								SQLQuery = sqlManager._getInsertIntoQuery(sheetName, valuesList)
+								sqlManager._executeQuery(SQLQuery)
+						except Exception as ex:
+							logging.debug("Exception: " + str(ex))
+							listError.append((sheetName, str(ex).replace("\"", "").replace("\'", "")))
+							continue
 		# Concentrate listError by sheetName
 		# We will have something like d["KTPT"] = ["Error1", "Error2"]
 		# d can be empty
