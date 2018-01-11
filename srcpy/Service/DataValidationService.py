@@ -136,28 +136,26 @@ def createDatabase(excelManager):
 				flod = ExcelManager.getFirstLineOfData(sheetName)
 				# Get all lines and slice them to get values only
 				tableDataList = list(sheet.rows)[flod-1:]
-				# Ignoring empty sheets
-				if len(tableDataList) != 0:
-					for line in tableDataList:
-						try:
-							if len(line) != 0:
-								valuesList = []
-								# Build valuesList
-								for cell in line[1:]:
-									if(cell is None or cell.value is None):
-										continue
-									if(cell is not None and cell.value is not None):
-										valuesList.append("\""+str(cell.value)+"\"")
-								# Formatting the SQL Query if there are values
-								if len(valuesList) != 0:
-									SQLQuery = sqlManager._getInsertIntoQuery(sheetName, valuesList)
-									sqlManager._executeQuery(SQLQuery)
-							else:
-								break
-						except Exception as ex:
-							logging.debug("Exception: " + str(ex))
-							listError.append((sheetName, str(ex).replace("\"", "").replace("\'", "")))
-							continue
+				for line in tableDataList:
+					try:
+						if not isLastLine(line):
+							valuesList = []
+							# Build valuesList
+							for cell in line[1:]:
+								if(cell is None or cell.value is None):
+									continue
+								if(cell is not None and cell.value is not None):
+									valuesList.append("\""+str(cell.value)+"\"")
+							# Formatting the SQL Query if there are values
+							if len(valuesList) != 0:
+								SQLQuery = sqlManager._getInsertIntoQuery(sheetName, valuesList)
+								sqlManager._executeQuery(SQLQuery)
+						else:
+							break
+					except Exception as ex:
+						logging.debug("Exception: " + str(ex))
+						listError.append((sheetName, str(ex).replace("\"", "").replace("\'", "")))
+						continue
 		# Concentrate listError by sheetName
 		# We will have something like d["KTPT"] = ["Error1", "Error2"]
 		# d can be empty
@@ -370,6 +368,20 @@ def is_decimal(s):
 		return True
 	except ValueError:
 		return False
+
+
+# START [isLastLine]
+def isLastLine(iterable):
+	"""
+		Used to know if parameter is the last line of 
+		an excel sheet.
+	"""
+	for element in iterable[1:5]:
+		if element.value:
+			return False
+	return True
+# END [isLastLine]
+
 
 # This exception allows the process to end
 # when listError is populated and thus consider 
