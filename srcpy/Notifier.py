@@ -5,6 +5,8 @@ import json
 import config
 import srcpy.Manager.StorageManager as StorageManager
 
+from collections import defaultdict
+
 
 # START [notifByMail]
 def notifByMail(operation, success, info = None):
@@ -44,11 +46,15 @@ def notifByMail(operation, success, info = None):
 	if operation != "DV":
 		# Clean body
 		if info is not None:
-			info = info.replace("\"", "")
-			info = info.replace("\'", "")
+			info = info.replace("\"", "").info.replace("\'", "")
 	else:
 		if info is not None:
-			info = prepareBodyDV(info)
+			if type(info) is defaultdict:
+				info = prepareBodyDV(info)
+			else:
+				info = info.replace("\"", "").info.replace("\'", "")
+				info += "<br>"
+
 		
 	logging.debug("Info: " + str(info))
 

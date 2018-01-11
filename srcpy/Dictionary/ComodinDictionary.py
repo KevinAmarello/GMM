@@ -1,8 +1,10 @@
 # START [getSheetWithComodin]
 # Returns the list of sheets that contain comodines
+# We consider sheet with comodin a sheet that presents a column where:
+# - An alphanumeric valeu is expectedd in a numeric column
+# - A column's value depends on other ones
 def getSheetWithComodin():
-	return ["KTPTCNT", "KTPTCOT", "KTPTCPT", "KTPTDOT", "KTPT6WT", "KTPTDIT", "KTPTBCT", "KTPTDJT", "KTPTDMT", "KTPTDLT"] #
-	#"KTPTCLT"
+	return ["KTPTCNT", "KTPTCOT", "KTPTCPT", "KTPTDOT", "KTPT6WT", "KTPTDIT", "KTPTBCT", "KTPTDJT", "KTPTDMT", "KTPTDLT", "KTPTCLT"]
 # END [getSheetWithComodin]
 
 

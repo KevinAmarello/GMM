@@ -131,12 +131,12 @@ class SQLManagerClass:
 	def getSelectComodinQuery(self, tableName, comodinName, conditionNames, conditionValues):
 		logging.debug("cN: "+ str(conditionNames) + " - cV: " + str(conditionValues))
 		if len(conditionNames) == 2:
-			return "SELECT {com} FROM {t} WHERE {cN[0]} IN {cV[0]} AND {cN[1]} IN {cV[1]}".format(com = comodinName, t = tableName, cN = conditionNames, cV = conditionValues)
+			return "SELECT DISTINCT {com} FROM {t} WHERE {cN[0]} IN {cV[0]} AND {cN[1]} IN {cV[1]}".format(com = comodinName, t = tableName, cN = conditionNames, cV = conditionValues)
 		else:
 			#if(len(conditionValues) == 1):
 			#	return "SELECT {com} FROM {t} WHERE {cN[0]} = {cV[0]}".format(com = comodinName, t = tableName, cN = conditionNames, cV = conditionValues)
 			#else:
-			return "SELECT {com} FROM {t} WHERE {cN[0]} IN {cV[0]}".format(com = comodinName, t = tableName, cN = conditionNames, cV = conditionValues)
+			return "SELECT DISTINCT {com} FROM {t} WHERE {cN[0]} IN {cV[0]}".format(com = comodinName, t = tableName, cN = conditionNames, cV = conditionValues)
 	# END [getSelectComodinQuery]
 
 

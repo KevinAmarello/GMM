@@ -62,7 +62,7 @@ def backgroundValidation(url):
 		
 		createDatabase(pbaManager)
 		#registryControl()
-		#checkComodin()
+		checkComodin()
 		StorageManager.writeResultInHistoric(url, "Exito")
 		Notifier.notifByMail("DV", True)
 		return Response ("Process done", status = 200)
@@ -140,17 +140,20 @@ def createDatabase(excelManager):
 				if len(tableDataList) != 0:
 					for line in tableDataList:
 						try:
-							valuesList = []
-							# Build valuesList
-							for cell in line[1:]:
-								if(cell is None or cell.value is None):
-									continue
-								if(cell is not None and cell.value is not None):
-									valuesList.append("\""+str(cell.value)+"\"")
-							# Formatting the SQL Query if there are values
-							if valuesList:
-								SQLQuery = sqlManager._getInsertIntoQuery(sheetName, valuesList)
-								sqlManager._executeQuery(SQLQuery)
+							if len(line) != 0:
+								valuesList = []
+								# Build valuesList
+								for cell in line[1:]:
+									if(cell is None or cell.value is None):
+										continue
+									if(cell is not None and cell.value is not None):
+										valuesList.append("\""+str(cell.value)+"\"")
+								# Formatting the SQL Query if there are values
+								if len(valuesList) != 0:
+									SQLQuery = sqlManager._getInsertIntoQuery(sheetName, valuesList)
+									sqlManager._executeQuery(SQLQuery)
+							else:
+								break
 						except Exception as ex:
 							logging.debug("Exception: " + str(ex))
 							listError.append((sheetName, str(ex).replace("\"", "").replace("\'", "")))
@@ -177,12 +180,11 @@ def createDatabase(excelManager):
 # START [checkComodin]
 def checkComodin():
 	"""
-		For each table in tha database which contains comodin,
+		For each table in tha database that contains comodin,
 		interrogates the database, selects the comodin column
 		and compares the value to what is expected.
 
 		Output:
-			List - Boolean, Details
 			Exception - Details 
 	"""
 	logging.debug("DataValidationService: checkComodin")
@@ -199,49 +201,50 @@ def checkComodin():
 
 			# Get columns to check
 			columnsToCheck = ComodinDictionary.getComodinColumnBySheet(sheet)
-
 			for column in columnsToCheck:
 				logging.debug(sheet + " : Loop in : " + column)
-				try:
-					# If integer column...
-					if(ComodinDictionary.getIntegerColumnBySheet(sheet) is not None and column in ComodinDictionary.getIntegerColumnBySheet(sheet)):
-						logging.debug("Integers are expected in this one")
-						# ... and if this column has conditions ...
-						if(ComodinDictionary.getConditionedComodinColumnBySheet(sheet) is not None and column in ComodinDictionary.getConditionedComodinColumnBySheet(sheet)):
-							logging.debug("Conditions are expected in this one")
-							checkLines_Condition(sheet , column, sqlManager)
+				
+				# If integer column...
+				if(ComodinDictionary.getIntegerColumnBySheet(sheet) is not None and column in ComodinDictionary.getIntegerColumnBySheet(sheet)):
+					logging.debug("Integers are expected in this column")
+					# ... and if this column has conditions ...
+					if(ComodinDictionary.getConditionedComodinColumnBySheet(sheet) is not None and column in ComodinDictionary.getConditionedComodinColumnBySheet(sheet)):
+						logging.debug("Conditions are expected in this column")
+						listError = checkLines_Condition(sheet , column, sqlManager, listError)
 												
-						# ... and doesn't take conditions to check value
-						else:
-							logging.debug("No conditions are expected in this one")
-							# Get column
+					# ... and doesn't take conditions to check value
+					else:
+						logging.debug("No conditions are expected in this column")
+						# Get column
+						resultSet = sqlManager._executeQuery(sqlManager._getColumnByTableQuery(sheet, column))
+						if(len(resultSet) != 0):
+							# Check value of these lines
+							for result in resultSet:
+								try:
+									assert is_integer(result[0]) or result[0] == ComodinDictionary.getComodinValueBySheet(sheet, column), "Valor de comodin incorecta. Comodin: {1} - Valor: {2}".format(sheet, column, result[0])
+								except Exception as ex:
+									listError.append((sheet, str(ex).replace("\"", "").replace("\'", "")))
+									continue
+				# If decimal column...
+				elif(ComodinDictionary.getDecimalColumnBySheet(sheet) is not None and column in ComodinDictionary.getDecimalColumnBySheet(sheet)):
+					logging.debug("Decimals are expected in this column")
+					# ... and if this column has conditions ...
+					if(ComodinDictionary.getConditionedComodinColumnBySheet(sheet) is not None and column in ComodinDictionary.getConditionedComodinColumnBySheet(sheet)):
+						logging.debug("Conditions are expected in this column")
+						listError = checkLines_Condition(sheet , column, sqlManager, listError)
+
+					# ... and doesn't take conditions to check value
+					else:
+						logging.debug("No conditions are expected in this column")
+						# Get column
+						if(len(resultSet) != 0):
 							resultSet = sqlManager._executeQuery(sqlManager._getColumnByTableQuery(sheet, column))
-							if(len(resultSet) != 0):
-								# Check value of these lines
-								for result in resultSet:
-									assert is_integer(result[0]) or result[0] == ComodinDictionary.getComodinValueBySheet(sheet, column), "Valor de comodin incorecta. Hoja: {0} - Comodin: {1} - Valor: {2}".format(sheet, column, result[0])
-
-					# If decimal column...
-					elif(ComodinDictionary.getDecimalColumnBySheet(sheet) is not None and column in ComodinDictionary.getDecimalColumnBySheet(sheet)):
-						logging.debug("Decimals are expected in this one")
-						# ... and if this column has conditions ...
-						if(ComodinDictionary.getConditionedComodinColumnBySheet(sheet) is not None and column in ComodinDictionary.getConditionedComodinColumnBySheet(sheet)):
-							logging.debug("Conditions are expected in this one")
-							checkLines_Condition(sheet , column, sqlManager)
-
-						# ... and doesn't take conditions to check value
-						else:
-							logging.debug("No conditions are expected in this one")
-							# Get column
-							if(len(resultSet) != 0):
-								resultSet = sqlManager._executeQuery(sqlManager._getColumnByTableQuery(sheet, column))
-								for result in resultSet:
-									assert is_decimal(result[0]) or result[0] == ComodinDictionary.getComodinValueBySheet(sheet, column), "Valor de comodin incorecta. Hoja: {0} - Comodin: {1} - Valor: {2}".format(sheet, column, str(result[0]))
-				except Exception as ex:
-					logging.debug("Exception " + str(ex))
-					# If catch an assertException, populates the listError
-					listError.append((sheetName, str(ex).replace("\"", "").replace("\'", "")))
-					continue
+							for result in resultSet:
+								try:
+									assert is_decimal(result[0]) or result[0] == ComodinDictionary.getComodinValueBySheet(sheet, column), "Valor de comodin incorecta. Comodin: {1} - Valor: {2}".format(sheet, column, str(result[0]))
+								except Exception as ex:
+									listError.append((sheet, str(ex).replace("\"", "").replace("\'", "")))
+									continue
 
 		# Concentrate listError by sheetName
 		# We will have something like d["KTPT"] = ["Error1", "Error2"]
@@ -253,9 +256,13 @@ def checkComodin():
 		if len(d) != 0:
 			logging.debug("Errors found.")
 			Notifier.notifByMail("DV", False, d)
-			raise Exception
+			raise EndException
+	except EndException as ee:
+		logging.debug("Except to end process")
+		raise ee
 	except Exception as ex:
 		logging.debug(str(ex))
+		Notifier.notifByMail("DV", False, str(ex))
 		raise ex
 	finally:
 		sqlManager._closeConnection()
@@ -263,7 +270,7 @@ def checkComodin():
 
 
 # START [checkLines_Condition_OK]
-def checkLines_Condition(sheet , column, sqlManager):
+def checkLines_Condition(sheet , column, sqlManager, listError):
 	"""
 		Select all the lines in the table that fits with the condition
 		Assert that the value equals the conditioned comodin
@@ -286,8 +293,11 @@ def checkLines_Condition(sheet , column, sqlManager):
 	if(len(resultSet) != 0):
 		# Check value of these lines
 		for result in resultSet:
-			assert str(result[0]) == ComodinDictionary.getConditionedComodinValueBySheet(sheet, column), "Valor de comodin incorecta. Hoja: {0} - Comodin: {1} - Valor: {2}".format(sheet, column, str(result[0]))
-					
+			try:
+				assert str(result[0]) == ComodinDictionary.getConditionedComodinValueBySheet(sheet, column), "Valor de comodin incorecta. Comodin: {1} - Valor: {2}".format(sheet, column, str(result[0]))
+			except Exception as ex:
+				listError.append((sheet, str(ex).replace("\"", "").replace("\'", "")))
+				continue	
 	# Get the other lines
 	logging.debug("Checking Conditions NOK")
 	queryBis = getComodinCondition_NOK_Query(sheet, column, queryCond)
@@ -296,7 +306,12 @@ def checkLines_Condition(sheet , column, sqlManager):
 	if(len(resultSet) != 0):
 		# Check value of these lines
 		for result in resultSet:
-			assert is_integer(result[0]) or str(result[0]) == ComodinDictionary.getComodinValueBySheet(sheet, column), "Valor de comodin incorecta. Hoja: {0} - Comodin: {1} - Valor: {2}".format(sheet, column, str(result[0]))
+			try:
+				assert is_integer(result[0]) or str(result[0]) == ComodinDictionary.getComodinValueBySheet(sheet, column), "Valor de comodin incorecta. Comodin: {1} - Valor: {2}".format(sheet, column, str(result[0]))
+			except Exception as ex:
+				listError.append((sheet, str(ex).replace("\"", "").replace("\'", "")))
+				continue
+	return listError
 # END [checkLines_Condition_OK]
 
 
@@ -318,9 +333,7 @@ def getComodinCondition_OK_Query(sheet , column, sqlManager):
 	cV = []
 	for c in conditions:
 		cN.append(c)
-		logging.debug(str(ComodinDictionary.getConditionValueBySheet(sheet, c)))
 		cV.append(ComodinDictionary.getConditionValueBySheet(sheet, c))
-	logging.debug(sqlManager.getSelectComodinQuery(sheet, column, cN, cV))
 	return sqlManager.getSelectComodinQuery(sheet, column, cN, cV)
 # END [getComodinCondition_OK_Query]
 
@@ -338,8 +351,8 @@ def getComodinCondition_NOK_Query(table, column, queryConditionOK):
 		Output:
 			Query 
 	"""
-	logging.debug("SELECT {0} FROM {1} WHERE {0} NOT IN ({2})".format(column, table, queryConditionOK))
-	return "SELECT {0} FROM {1} WHERE {0} NOT IN ({2})".format(column, table, queryConditionOK)
+	logging.debug("SELECT DISTINCT {0} FROM {1} WHERE {0} NOT IN ({2})".format(column, table, queryConditionOK))
+	return "SELECT DISTINCT {0} FROM {1} WHERE {0} NOT IN ({2})".format(column, table, queryConditionOK)
 # END [getComodinCondition_NOK_Query]
 
 
@@ -357,3 +370,9 @@ def is_decimal(s):
 		return True
 	except ValueError:
 		return False
+
+# This exception allows the process to end
+# when listError is populated and thus consider 
+# other types of exception.
+class EndException(Exception):
+	pass
