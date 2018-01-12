@@ -60,5 +60,14 @@ angular
           controller: 'CifrasCtrl'
         }
       }
+    })
+    .state('main.catalogos', {
+      url: 'catalogos',
+      views: {
+        'main@main': {
+          templateUrl: 'views/catalogos.html',
+          controller: 'CatalogoCtrl'
+        }
+      }
     });
   });

@@ -60,6 +60,15 @@ angular
           controller: 'CifrasCtrl'
         }
       }
+    })
+    .state('main.catalogos', {
+      url: 'catalogos',
+      views: {
+        'main@main': {
+          templateUrl: 'views/catalogos.html',
+          controller: 'CatalogoCtrl'
+        }
+      }
     });
   }]);
 
@@ -196,24 +205,43 @@ angular.module('gmmApp')
 angular.module('gmmApp')
   .controller('MenuCtrl', ["$scope", "$state", "cargaFactory", function ($scope, $state, cargaFactory) {
     $scope.notificacion = false;
+    $scope.loading = false;
+    $scope.alert = false;
+    $scope.mensaje = "";
+    $scope.mensajes = ["Algo salió mal, por favor reintente", 
+                       "Por favor verifique que el archivo sea de extensión .xlsx ó .xls", 
+                       "Por favor ingrese un archivo"];
 
     $scope.send = function() {
+      $scope.alert = false;
+      $scope.mensaje="";
       console.log($scope.input);
       if($scope.input){
+        $scope.loading = true;
         var bool = $scope.verifyExt($scope.input);
         if(bool) {
           var r = cargaFactory.cargaInicial("exampleInputFile");
           r.then(function(response){
             console.log(response);
+            $scope.loading = false;
             $scope.notificacion = true;
           }, function(err){
-            alert("Algo salió mal, por favor reintente en un momento")
+            $scope.alert = true;
+            $scope.mensaje = $scope.mensajes[0];
+            $scope.loading = false;
+            //alert("Algo salió mal, por favor reintente en un momento")
           }); 
         } else {
-          alert("Por favor verifique que el archivo sea de extensión .xlsx ó .xls")
+          $scope.alert = true;
+          $scope.mensaje = $scope.mensajes[1];
+          $scope.loading = false;
+          //alert("Por favor verifique que el archivo sea de extensión .xlsx ó .xls")
         }
       } else {
-        alert("Por favor ingrese un archivo")
+        $scope.alert = true;
+        $scope.mensaje = $scope.mensajes[2];
+        $scope.loading = false;
+        //alert("Por favor ingrese un archivo")
       }
     }
 
@@ -231,6 +259,11 @@ angular.module('gmmApp')
     $scope.regresar = function() {
       $scope.notificacion = false;
     }
+
+    $scope.$watch('input', function(){
+      $scope.alert = false;
+      $scope.mensaje = "";
+    })
   }]);
 
 'use strict';
@@ -315,23 +348,42 @@ angular.module('gmmApp')
     ];
     $scope.cifras = {};
     $scope.notificacion = false;
-
+    $scope.loading = false;
+    $scope.alert = false;
+    $scope.mensaje = "";
+    $scope.mensajes = ["Algo salió mal, por favor reintente", 
+                       'Por favor verifique que los datos que ingresó sean valores numéricos', 
+                       'Faltan cifras, por favor verifique'];
+    
     $scope.enviar = function(){
     	 var v = $scope.verify($scope.cifras);
     	 if(v){
     	 	var r = cargaFactory.cargaCifras($scope.cifras);
     	 	r.then(function(response){
-    	 		console.log(response)
+    	 		//console.log(response)
+          $scope.loading = false;
           $scope.notificacion = true;
     	 	}, function(err){
-    	 		alert("Algo salió mal, por favor reintente")
+          $scope.mensaje = $scope.mensajes[0];
+          $scope.alert = true;
+          $scope.loading = false;
+    	 		//alert("Algo salió mal, por favor reintente")
     	 	})
     	 }
     }
 
     $scope.verify = function(obj){
+      $scope.loading = true;
     	var errors = 0;
-    	var count = Object.keys(obj).length;
+    	var count = 0; //Object.keys(obj).length;
+      for(var k in obj) {
+        if(obj.hasOwnProperty(k)) {
+          //console.log(obj[k].length)  
+          if(obj[k].length > 0) {
+            count += 1;
+          }
+        }
+      }
     	if(count == 22) {
 	    	for(var key in obj) {
 	    		if(obj.hasOwnProperty(key)){
@@ -343,13 +395,20 @@ angular.module('gmmApp')
 	    		}
 	    	}
 	    	if(errors > 0) {
-	    		alert('Por favor verifique que los datos que ingresó sean valores numéricos')
+          $scope.loading = false;
+          $scope.mensaje = $scope.mensajes[1];
+          $scope.alert = true;
+          //alert('Por favor verifique que los datos que ingresó sean valores numéricos');
 	    		return false;
 	    	} else {
 	    		return true;
 	    	}
 	    } else {
-	    	alert('Faltan cifras, por favor verifique')
+        //console.log("Hellooooo")
+        $scope.loading = false;
+        $scope.mensaje = $scope.mensajes[2];
+        $scope.alert = true;
+	    	//alert('Faltan cifras, por favor verifique')
 	    	return false
 	    }
     }
@@ -357,25 +416,12 @@ angular.module('gmmApp')
     $scope.regresar = function() {
       $scope.notificacion = false;
     }
+
+    $scope.changeMessage = function(){
+      $scope.alert = false;
+      $scope.mesaje ="";
+    }
   }]);
-
-'use strict';
-
-/**
- * @ngdoc function
- * @name gmmmApp.controller:CatalogosCtrl
- * @description
- * # CatalogosCtrl
- * Controller of the gmmmApp
- */
-angular.module('gmmApp')
-  .controller('CatalogosCtrl', function () {
-    this.awesomeThings = [
-      'HTML5 Boilerplate',
-      'AngularJS',
-      'Karma'
-    ];
-  });
 
 'use strict';
 
@@ -395,6 +441,10 @@ angular.module('gmmApp')
     			break;
     		case 2:
     			$state.go('main.cifras');
+    			break;
+    		case 3:
+    			$state.go('main.catalogos');
+    			break;
     	}
     }
   }]);
@@ -426,7 +476,7 @@ angular.module('gmmApp').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/ccontrl.html',
-    "<div class=\"container-fluid nopadding\"> <div class=\"row\"> <div class=\"container content\"> <div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12 header-box\"> <h3>Carga de Cifras de Control</h3> </div> <div class=\"col-lg-6\" ng-hide=\"notificacion\"> <div class=\"container-fluid nopadding\"> <div class=\"row\"> <div class=\"container content\"> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPT8AT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPT8AT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTDGT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTDGT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTDIT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTDIT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTDMT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTDMT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTBCT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTBCT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTCLT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTCLT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTAST </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTAST\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTDLT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTDLT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KAPTPAT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KAPTPAT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPT8LT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPT8LT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTBQT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTBQT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTCKT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTCKT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPT8BT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPT8BT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTDJT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTDJT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTDNT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTDNT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTCNT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTCNT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTCOT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTCOT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTCPT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTCPT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTDFT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTDFT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPT6WT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPT6WT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTDOT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTDOT\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTCQT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTCQT\"> </div> </div> <div class=\"col-xs-12 row-submit nopadding\"> <div class=\"col-lg-offset-3 col-lg-6\"> <button ng-click=\"enviar()\">Guardar</button> </div> </div> </div> </div> </div> </div> <div ng-show=\"notificacion\"> <div class=\"col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-6 col-sm-offset-3 col-xs-12 col-xs-offset-0 input-file\"> <div class=\"form-group\"> <label for=\"exampleInputFile\">Proceso Finalizado</label> </div> </div> <div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\"> <div class=\"col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 col-xs-12 col-xs-offset-0 send-btn\"> <button type=\"submit\" ng-click=\"regresar()\"> Regresar</button> </div> </div> </div> </div> </div> </div>"
+    "<div class=\"container-fluid nopadding\"> <div class=\"row\"> <div class=\"container content\"> <div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12 header-box\"> <h3>Carga de Cifras de Control</h3> </div> <div class=\"col-lg-6\" ng-hide=\"notificacion\"> <div class=\"container-fluid nopadding\"> <div class=\"row\"> <div class=\"container content\"> <div class=\"col-xs-12 row-input\"> <div class=\"alert alert-danger\" ng-show=\"alert\"> <strong>{{mensaje}}</strong> </div> <div class=\"col-lg-offset-2 col-lg-1\"> KTPT8AT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPT8AT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTDGT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTDGT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTDIT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTDIT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTDMT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTDMT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTBCT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTBCT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTCLT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTCLT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTAST </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTAST\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTDLT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTDLT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KAPTPAT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KAPTPAT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPT8LT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPT8LT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTBQT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTBQT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTCKT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTCKT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPT8BT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPT8BT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTDJT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTDJT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTDNT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTDNT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTCNT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTCNT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTCOT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTCOT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTCPT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTCPT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTDFT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTDFT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPT6WT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPT6WT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTDOT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTDOT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-input\"> <div class=\"col-lg-offset-2 col-lg-1\"> KTPTCQT </div> <div class=\"col-lg-6 input\"> <input type=\"text\" ng-model=\"cifras.KTPTCQT\" ng-focus=\"changeMessage()\"> </div> </div> <div class=\"col-xs-12 row-submit nopadding\"> <div class=\"col-lg-offset-3 col-lg-6\"> <button ng-click=\"enviar()\">Guardar</button> </div> </div> </div> </div> </div> </div> <div ng-show=\"notificacion\"> <div class=\"col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-6 col-sm-offset-3 col-xs-12 col-xs-offset-0 input-file\"> <div class=\"form-group\"> <label for=\"exampleInputFile\">Proceso Finalizado</label> </div> </div> <div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\"> <div class=\"col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 col-xs-12 col-xs-offset-0 send-btn\"> <button type=\"submit\" ng-click=\"regresar()\"> Regresar</button> </div> </div> </div> </div> </div> </div> <div class=\"loading-wrap\" ng-show=\"loading\"> <img src=\"images/loading.gif\" alt=\"\"> </div>"
   );
 
 
@@ -452,12 +502,12 @@ angular.module('gmmApp').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/header.html',
-    "<div class=\"container-fluid nopadding\"> <div class=\"row\"> <div class=\"container\"> <div class=\"col-lg-9 col-md-9 col-sm-9 col-xs-9 nav-bar\"> <ul> <li><a ng-click=\"\">Descarga de Archivo</a></li> <li><a ng-click=\"\">Carga de Cat&aacute;logos</a></li> <li><a ng-click=\"goTo(2)\">Carga de Cifras de Control</a></li> <li><a ng-click=\"goTo(1)\">Carga de Tablas</a></li> </ul> </div> </div> </div> </div>"
+    "<div class=\"container-fluid nopadding\"> <div class=\"row\"> <div class=\"container\"> <div class=\"col-lg-9 col-md-9 col-sm-9 col-xs-9 nav-bar\"> <ul> <li><a ng-click=\"goTo(4)\">Descarga de Archivo</a></li> <li><a ng-click=\"goTo(3)\">Carga de Cat&aacute;logos</a></li> <li><a ng-click=\"goTo(2)\">Carga de Cifras de Control</a></li> <li><a ng-click=\"goTo(1)\">Carga de Tablas</a></li> </ul> </div> </div> </div> </div>"
   );
 
 
   $templateCache.put('views/menu_principal.html',
-    "<div class=\"container-fluid nopadding\"> <div class=\"row\"> <div class=\"container content\"> <div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12 header-box\"> <h3>Carga de Archivo de Tablas</h3> </div> <div ng-hide=\"notificacion\"> <div class=\"col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-6 col-sm-offset-3 col-xs-12 col-xs-offset-0 input-file\"> <div class=\"form-group\"> <label for=\"exampleInputFile\">Seleccione el archivo que desea cargar.</label> <input type=\"file\" id=\"exampleInputFile\" file-model=\"input\"> </div> </div> <div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\"> <div class=\"col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 col-xs-12 col-xs-offset-0 send-btn\"> <button type=\"submit\" ng-click=\"send()\"> CARGAR ARCHIVO</button> </div> </div> </div> <div ng-show=\"notificacion\"> <div class=\"col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-6 col-sm-offset-3 col-xs-12 col-xs-offset-0 input-file\"> <div class=\"form-group\"> <label for=\"exampleInputFile\">El proceso ha iniciado, pronto recibirá una notificación.</label> </div> </div> <div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\"> <div class=\"col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 col-xs-12 col-xs-offset-0 send-btn\"> <button type=\"submit\" ng-click=\"regresar()\"> Regresar</button> </div> </div> </div> </div> </div> </div>"
+    "<div class=\"container-fluid nopadding\"> <div class=\"row\"> <div class=\"container content\"> <div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12 header-box\"> <h3>Carga de Archivo de Tablas</h3> </div> <div ng-hide=\"notificacion\"> <div class=\"col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-6 col-sm-offset-3 col-xs-12 col-xs-offset-0 input-file\"> <div class=\"alert alert-danger\" ng-show=\"alert\"> <strong>{{mensaje}}</strong> </div> <div class=\"form-group\"> <label for=\"exampleInputFile\">Seleccione el archivo que desea cargar.</label> <input type=\"file\" id=\"exampleInputFile\" file-model=\"input\"> </div> </div> <div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\"> <div class=\"col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 col-xs-12 col-xs-offset-0 send-btn\"> <button type=\"submit\" ng-click=\"send()\"> CARGAR ARCHIVO</button> </div> </div> </div> <div ng-show=\"notificacion\"> <div class=\"col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-6 col-sm-offset-3 col-xs-12 col-xs-offset-0 input-file\"> <div class=\"form-group\"> <label for=\"exampleInputFile\">El proceso ha iniciado, pronto recibirá una notificación.</label> </div> </div> <div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\"> <div class=\"col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 col-xs-12 col-xs-offset-0 send-btn\"> <button type=\"submit\" ng-click=\"regresar()\"> Regresar</button> </div> </div> </div> </div> </div> </div> <div class=\"loading-wrap\" ng-show=\"loading\"> <img src=\"images/loading.gif\" alt=\"\"> </div>"
   );
 
 }]);
