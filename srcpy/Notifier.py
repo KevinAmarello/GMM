@@ -46,17 +46,18 @@ def notifByMail(operation, success, info = None):
 	if operation != "DV":
 		# Clean body
 		if info is not None:
-			info = info.replace("\"", "").info.replace("\'", "")
+			info = info.replace("\"", "").replace("\'", "")
 	else:
 		if info is not None:
 			if type(info) is defaultdict:
 				info = prepareBodyDV(info)
 			else:
-				info = info.replace("\"", "").info.replace("\'", "")
+				info = info.replace("\"", "").replace("\'", "")
 				info += "<br>"
 
 		
 	logging.debug("Info: " + str(info))
+	info = info.replace("\"", "").replace("\'", "")
 
 	if operation == "FES":
 		payload['subject'] = "Resultado de la exportacion final de archivos."
