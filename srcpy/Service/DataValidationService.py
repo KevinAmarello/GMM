@@ -299,6 +299,7 @@ def checkLines_Condition(table , column, sqlManager, listError):
 		try:
 			assert str(result[0]) == ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column), "Valor de comodin incorecta. Checar condiciones. Comodin: {1} - Valor: {2}".format(table, column, str(result[0]))
 		except Exception as ex:
+			logging.debug("Exception: " + str(ex))
 			listError.append((table, str(ex).replace("\"", "").replace("\'", "")))
 			continue	
 
@@ -317,6 +318,7 @@ def checkLines_Condition(table , column, sqlManager, listError):
 			try:
 				assert line[0] != ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column), "Valor de comodin incorecta. Las condiciones no estan satisfechas. Comodin: {1} - Valor: {2}".format(column, str(line[0]))
 			except Exception as ex:
+				logging.debug("Exception: " + str(ex))
 				listError.append((table, str(ex).replace("\"", "").replace("\'", "")))
 				continue
 	return listError
