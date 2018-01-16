@@ -186,7 +186,7 @@ def getAlphaNumericColumnByTable(table):
 	switcher = {
 		"KTPTCNT": ["CDREGGMM", "INCONTMM"],
 		"KTPTCOT": ["CDREGGMM", "CDDEDUCI"],
-		"KTPTCPT": ["CDRPDOTE", "CDREGGMM", "CDDEDUCI"],
+		"KTPTCPT": ["CDPRODTE", "CDREGGMM", "CDDEDUCI"],
 		"KTPT6WT": ["CDREGION"],
 		"KTPTDOT": ["CDREGION", "CDDEDUCI"]
 	}

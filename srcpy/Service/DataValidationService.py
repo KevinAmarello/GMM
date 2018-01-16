@@ -316,7 +316,7 @@ def checkLines_Condition(table , column, sqlManager, listError):
 	if ComodinDictionary.getAlphaNumericColumnByTable(table) is not None and column in ComodinDictionary.getAlphaNumericColumnByTable(table):
 		for line in resultSet:
 			try:
-				assert line[0] != ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column), "Valor de comodin incorecta. Las condiciones no estan satisfechas. Comodin: {1} - Valor: {2}".format(column, str(line[0]))
+				assert line[0] != ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column), "Valor de comodin incorecta. Las condiciones no estan satisfechas. Comodin: {0} - Valor: {1}".format(column, str(line[0]))
 			except Exception as ex:
 				logging.debug("Exception: " + str(ex))
 				listError.append((table, str(ex).replace("\"", "").replace("\'", "")))
