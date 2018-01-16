@@ -264,7 +264,7 @@ def checkComodin():
 		raise ee
 	except Exception as ex:
 		logging.debug(str(ex))
-		Notifier.notifByMail("DV", False, str(ex))
+		Notifier.notifByMail("DV", False, str(ex).replace("\"", "").replace("\'", ""))
 		raise ex
 	finally:
 		sqlManager._closeConnection()
