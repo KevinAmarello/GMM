@@ -1,36 +1,60 @@
-# START [getSheetWithComodin]
-# Returns the list of sheets that contain comodines
-# We consider sheet with comodin a sheet that presents a column where:
-# - An alphanumeric valeu is expectedd in a numeric column
+# START [getTableWithComodin]
+# Returns the list of table that contain comodines
+# We consider table with comodin a table that presents a column where:
+# - An alphanumeric value is expected in a numeric column
 # - A column's value depends on other ones
-def getSheetWithComodin():
-	return ["KTPTCNT", "KTPTCOT", "KTPTCPT", "KTPTDOT", "KTPT6WT", "KTPTDIT", "KTPTBCT", "KTPTDJT", "KTPTDMT", "KTPTDLT", "KTPTCLT"]
-# END [getSheetWithComodin]
+def getTableWithComodin():
+	return ["KTPTCNT", "KTPTCOT", "KTPTCPT", "KTPT6WT", "KTPTDOT", "KTPTDJT", "KTPTDIT", "KTPTDMT", "KTPTBCT", "KTPTCLT", "KTPTDLT"]
+# END [getTableWithComodin]
 
 
-# START [getComodinColumnBySheet]
-# Returns the comodin columns for each sheet
-def getComodinColumnBySheet(sheetName):
+# START [getComodinColumnByTable]
+# Returns the comodin columns for each table, these columns 
+# present default or conditioned comodin value
+def getComodinColumnByTable(table):
 	switcher = {
-		"KTPTCNT": ["INTABULA", "CDCOAINT", "CDREGGMM", "INCONTMM", "CDPLAN"],
+		"KTPTCNT": ["INTABULA", "CDCOAINT", "CDREGGMM", "CDPLAN", "INCONTMM"],
 		"KTPTCOT": ["CDREGGMM", "CDDEDUCI"],
-		"KTPTCPT": ["CDPLAN", "CDREGGMM", "CDDEDUCI", "CDPRODCO"],
-		"KTPTDOT": ["CDPLAN", "CDREGION", "CDDEDUCI", "CDPRODCO"],
-		"KTPTDJT": ["VACOSEGU", "VALIMCCI", "CDPLAN", "CDCOAINT"],
+		"KTPTCPT": ["CDPRODTE", "CDPRODCO", "CDPLAN", "CDREGGMM", "TCTISUAS", "CDDEDUCI"],
+		"KTPT6WT": ["CDPLAN"],
+		"KTPTDOT": ["CDPRODCO", "CDPLAN", "CDREGION", "CDDEDUCI"],		
+		"KTPTDJT": ["CDPLAN", "CDCOAINT", "VACOSEGU", "VALIMCCI"],
 		"KTPTDIT": ["CDPRODCO", "TCSEGMEN", "INTABULA"],
 		"KTPTDMT": ["CDPRODCO"],
 		"KTPTBCT": ["TCSEGPLA"], 
-		"KTPT6WT": ["CDPLAN"],
+		"KTPTCLT": ["CDCOAINT"],
+		"KTPTDLT": ["CDPLAN"],
 		"KTPTCLT": ["CDCOAINT"],
 		"KTPTDLT": ["CDPLAN"]
 	}
-	return switcher.get(sheetName)
-# END [getComodinColumnBySheet]
+	return switcher.get(table)
+# END [getComodinColumnByTable]
 
 
-# START [getComodinColumnBySheet]
-# Returns the comodin columns for each sheet
-def getConditionedComodinColumnBySheet(sheetName):
+# START [getDefaultComodinColumnByTable]
+# Returns columns that present a default comodin value
+def getDefaultComodinColumnByTable(table):
+	switcher = {
+		"KTPTCNT": ["INTABULA", "CDREGGMM", "CDPLAN"],
+		"KTPTCOT": ["CDREGGMM", "CDDEDUCI"],
+		"KTPTCPT": ["CDPRODTE", "CDPRODCO", "TCTISUAS", "CDDEDUCI", "VASUASEG"],
+		"KTPT6WT": ["CDPLAN"],
+		"KTPTDOT": ["CDPRODCO", "CDREGION", "CDDEDUCI"],
+		"KTPTDJT": ["CDPLAN", "CDCOAINT", "VACOSEGU", "VALIMCCI"],
+		"KTPTDIT": ["CDPRODCO", "TCSEGMEN", "INTABULA"],
+		"KTPTDMT": ["CDPRODCO"],
+		"KTPTBCT": ["TCSEGPLA"], 
+		"KTPTCLT": ["CDCOAINT"],
+		"KTPTDLT": ["CDPLAN"]
+	}
+	return switcher.get(table)
+# END [getDefaultComodinColumnByTable]
+
+
+# START [getConditionedComodinColumnByTable]
+# Returns columns that present a conditioned comodin value
+# It means that this value depends on others ones
+def getConditionedComodinColumnByTable(table):
 	switcher = {
 		"KTPTCNT": ["INTABULA", "CDCOAINT", "CDREGGMM", "INCONTMM"],
 		"KTPTCOT": ["CDREGGMM", "CDDEDUCI"],
@@ -38,49 +62,48 @@ def getConditionedComodinColumnBySheet(sheetName):
 		"KTPTDOT": ["CDPLAN", "CDREGION", "CDDEDUCI"],
 		"KTPTDJT": ["VACOSEGU", "VALIMCCI"]
 	}
-	return switcher.get(sheetName)
-# END [getComodinColumnBySheet]
+	return switcher.get(table)
+# END [getConditionedComodinColumnByTable]
 
 
-# START [getComodinValueBySheet]
-# Returns the value that takes the comodin for each sheet
-def getComodinValueBySheet(sheetName, comodin):
+# START [getDefaultComodinValueByTableAndComodin]
+# Returns the default comodin value for each couple (table, comodinColumn)
+def getDefaultComodinValueByTableAndComodin(table, comodin):
 	switcher = {
-		("KTPTCNT", "CDPLAN"): "ZZZZZ",
-		("KTPTCNT", "CDCOAINT"): "X",
-		("KTPTCNT", "CDREGGMM"): "ZZZZZZZZ",
-		("KTPTCNT", "INCONTMM"): "X",
 		("KTPTCNT", "INTABULA"): "ZZZZ",
+		("KTPTCNT", "CDREGGMM"): "ZZZZZZZZ",
+		("KTPTCNT", "CDPLAN"): "ZZZZZ",
 		("KTPTCOT", "CDREGGMM"): "ZZZZZZZZ",
 		("KTPTCOT", "CDDEDUCI"): "ZZZZ",
-		("KTPTCPT", "CDPLAN"): "XXXXX",
-		("KTPTCPT", "CDREGGMM"): "ZZZZZZZZ",
-		("KTPTCPT", "CDDEDUCI"): "ZZZZ",
+		("KTPTCPT", "CDPRODTE"): "ZZZZZZZZZZ",
 		("KTPTCPT", "CDPRODCO"): "ZZZZZZZZZZ",
-		("KTPTDOT", "CDPLAN"): "XXXXX",
-		("KTPTDOT", "CDREGION"): "XXXXXXXX",
-		("KTPTDOT", "CDDEDUCI"): "XXXX",
+		("KTPTCPT", "TCTISUAS"): "Z",
+		("KTPTCPT", "CDDEDUCI"): "ZZZZ",
+		("KTPTCPT", "VASUASEG"): "999999999",
+		("KTPT6WT", "CDPLAN"): "ZZZZZ",
+		("KTPT6WT", "CDREGION"): "ZZZZZZZZ",
 		("KTPTDOT", "CDPRODCO"): "ZZZZZZZZZZ",
-		("KTPTDJT", "VACOSEGU"): "999999999999",
-		("KTPTDJT", "VALIMCCI"): "999999999999",
+		("KTPTDOT", "CDREGION"): "ZZZZZZZZ",
+		("KTPTDOT", "CDDEDUCI"): "ZZZZ",		
 		("KTPTDJT", "CDPLAN"): "ZZZZZ",
 		("KTPTDJT", "CDCOAINT"): "Z",
+		("KTPTDJT", "VACOSEGU"): "999999999",
+		("KTPTDJT", "VALIMCCI"): "999999999",
 		("KTPTDIT", "CDPRODCO"): "ZZZZZZZZZZ",
 		("KTPTDIT", "TCSEGMEN"): "ZZ",
-		("KTPTDIT", "INTABULA"): "ZZ",
+		("KTPTDIT", "INTABULA"): "ZZZZ",
 		("KTPTDMT", "CDPRODCO"): "ZZZZZZZZZZ",
 		("KTPTBCT", "TCSEGPLA"): "ZZ",
-		("KTPT6WT", "CDPLAN"): "ZZZZZ",
-		("KTPTDLT", "CDPLAN"): "ZZZZZ",
-		("KTPTCLT", "CDCOAINT"): "Z" 
+		("KTPTCLT", "CDCOAINT"): "Z" ,
+		("KTPTDLT", "CDPLAN"): "ZZZZZ"
 	}
-	return switcher.get((sheetName, comodin))
-# END [getComodinValueBySheet]
+	return switcher.get((table, comodin))
+# END [getDefaultComodinValueByTableAndComodin]
 
 
-# START [getComodinValueBySheet]
-# Returns the value that takes the comodin for each sheet fittin with the conditions
-def getConditionedComodinValueBySheet(sheetName, comodin):
+# START [getConditionedComodinValueByTableAndComodin]
+# Returns the conditioned comdine value for each couple (table, comodinColumn)
+def getConditionedComodinValueByTableAndComodin(table, comodin):
 	switcher = {
 		("KTPTCNT", "INTABULA"): "XXXX",
 		("KTPTCNT", "CDCOAINT"): "X",
@@ -90,20 +113,20 @@ def getConditionedComodinValueBySheet(sheetName, comodin):
 		("KTPTCOT", "CDDEDUCI"): "XXXX",
 		("KTPTCPT", "CDPLAN"): "XXXXX",
 		("KTPTCPT", "CDREGGMM"): "ZZZZZZZZ",
-		("KTPTCPT", "CDDEDUCI"): "ZZZZ",
+		("KTPTCPT", "CDDEDUCI"): "XXXX",
 		("KTPTDOT", "CDPLAN"): "XXXXX",
 		("KTPTDOT", "CDREGION"): "XXXXXXXX",
 		("KTPTDOT", "CDDEDUCI"): "XXXX",
 		("KTPTDJT", "VACOSEGU"): "999999999999",
 		("KTPTDJT", "VALIMCCI"): "999999999999"
 	}
-	return switcher.get((sheetName, comodin))
-# END [getComodinValueBySheet]
+	return switcher.get((table, comodin))
+# END [getConditionedComodinValueByTableAndComodin]
 
 
-# START [getConditionColumnBySheet]
+# START [getConditionColumnByTable]
 # Returns the conditions whom depend the comodines for each sheet
-def getConditionColumnBySheet(sheetName):
+def getConditionColumnByTable(table):
 	switcher = {
 		"KTPTCNT": ["CDPRODCO", "CDPLAN"],
 		"KTPTCOT": ["CDPRODCO", "CDPLAN"],
@@ -111,13 +134,13 @@ def getConditionColumnBySheet(sheetName):
 		"KTPTDOT": ["CDPRODCO"],
 		"KTPTDJT": ["CDPRODCO"]
 	}
-	return switcher.get(sheetName)
-# END [getConditionColumnBySheet]
+	return switcher.get(table)
+# END [getConditionColumnByTable]
 
 
-# START [getConditionValueBySheet]
-# Return the value for each condition for each sheet
-def getConditionValueBySheet(sheetName, cond):
+# START [getConditionValueByTableAndColumn]
+# Return the value for each condition for each couple (table, conditionColumn)
+def getConditionValueByTableAndColumn(table, cond):
 	switcher = {
 		("KTPTCNT", "CDPRODCO"): (1,4),
 		("KTPTCNT", "CDPLAN"): (20,21,22,23,24,32),
@@ -125,34 +148,47 @@ def getConditionValueBySheet(sheetName, cond):
 		("KTPTCOT", "CDPLAN"): (20,21,22,23,24),
 		("KTPTCPT", "CDPRODCO"): (1,4),
 		("KTPTDOT", "CDPRODCO"): (1,4),
-		("KTPTDJT", "CDPRODCO"): (7,-1)
+		("KTPTDJT", "CDPRODCO"): (7,-10) # -10: Mock value to have a tuple and fit with the SQLQuery prototype
 	}
-	return switcher.get((sheetName, cond))
-# END [getConditionValueBySheet]
+	return switcher.get((table, cond))
+# END [getConditionValueByTableAndColumn]
 
 
-# START [getIntegerColumnBySheet]
-def getIntegerColumnBySheet(sheetName):
+# START [getIntegerColumnByTable]
+def getIntegerColumnByTable(table):
 	switcher = {
-		"KTPTCNT": ["CDCOAINT", "CDPLAN"],
-		"KTPTCPT": ["CDPLAN", "CDPRODCO"],
-		"KTPTDOT": ["CDPLAN", "CDPRODCO"],
+		"KTPTCNT": ["CDCOAINT", "CDPLAN", "INTABULA"],
+		"KTPTCPT": ["CDPRODCO", "CDPLAN", "TCTISUAS"],
+		"KTPT6WT": ["CDPLAN"],
+		"KTPTDOT": ["CDPRODCO", "CDPLAN"],
 		"KTPTDJT": ["CDPLAN", "CDCOAINT"],
 		"KTPTDIT": ["CDPRODCO", "TCSEGMEN", "INTABULA"],
 		"KTPTDMT": ["CDPRODCO"],
 		"KTPTBCT": ["TCSEGPLA"], 
-		"KTPT6WT": ["CDPLAN"],
-		"KTPTCLT": ["CDCOAINT", "TCSEGMEN", "INTABULA"],
+		"KTPTCLT": ["CDCOAINT"],
 		"KTPTDLT": ["CDPLAN"]
 	}
-	return switcher.get(sheetName)
-# END [getIntegerColumnBySheet]
+	return switcher.get(table)
+# END [getIntegerColumnByTable]
 
 
-# START [getDecimalColumnBySheet]
-def getDecimalColumnBySheet(sheetName):
+# START [getDecimalColumnByTable]
+def getDecimalColumnByTable(table):
 	switcher = {
 		"KTPTDJT": ["VACOSEGU", "VALIMCCI"]
 	}
-	return switcher.get(sheetName)
-# END [getDecimalColumnBySheet]	
+	return switcher.get(table)
+# END [getDecimalColumnByTable]	
+
+
+# START [getAlphaNumericColumnByTable]
+def getAlphaNumericColumnByTable(table):
+	switcher = {
+		"KTPTCNT": ["CDREGGMM", "INCONTMM"],
+		"KTPTCOT": ["CDREGGMM", "CDDEDUCI"],
+		"KTPTCPT": ["CDPRODTE", "CDREGGMM", "CDDEDUCI"],
+		"KTPT6WT": ["CDREGION"],
+		"KTPTDOT": ["CDREGION", "CDDEDUCI"]
+	}
+	return switcher.get(table)
+# END [getAlphaNumericColumnByTable]

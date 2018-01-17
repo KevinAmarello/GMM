@@ -43,17 +43,24 @@ def notifByMail(operation, success, info = None):
 	payload = {}
 	payload['to'] = contactList
 
-	if operation != "DV":
-		# Clean body
-		if info is not None:
-			info = info.replace("\"", "").info.replace("\'", "")
-	else:
+	if operation == "DV": 
 		if info is not None:
 			if type(info) is defaultdict:
 				info = prepareBodyDV(info)
 			else:
-				info = info.replace("\"", "").info.replace("\'", "")
-				info += "<br>"
+				info = info.replace("\"", "").replace("\'", "")
+				info += "<br>"	
+	elif operation == "AC":
+		if info is not None:
+			if type(info) is list:
+				info = prepareBodyAC(info)
+			else:
+				info = info.replace("\"", "").replace("\'", "")
+				info += "<br>"	
+	else:
+		# Clean body
+		if info is not None:
+			info = info.replace("\"", "").replace("\'", "")
 
 		
 	logging.debug("Info: " + str(info))
@@ -78,7 +85,7 @@ def notifByMail(operation, success, info = None):
 		if success:
 			payload['body'] = "El proceso de aplicacion de catalogo sucedio exitosamente."
 		else:
-			payload['body'] = "Un error ocurrio en el proceso de aplicacion: {0}. Favor de verificar el documento e intentar de nuevo.".format(info)
+			payload['body'] = "Un error ocurrio en el proceso de aplicacion: {0}Favor de verificar el documento e intentar de nuevo.".format(info)
 
 	logging.debug(str(json.dumps(payload)))
 
@@ -110,3 +117,14 @@ def prepareBodyDV(info):
 			infoTemp += v + " en tabla " + k +"<br>"
 	return infoTemp
 # END [prepareBodyDV]
+
+
+# START [prepareBodyAC]
+def prepareBodyAC(info):
+	logging.debug("Entry prepareBody")
+	infoTemp = "" 
+
+	for err in info:
+		infoTemp += err +"<br>"
+	return infoTemp
+# END [prepareBodyAC]

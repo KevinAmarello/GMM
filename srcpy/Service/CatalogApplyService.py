@@ -14,6 +14,7 @@ from srcpy.Dictionary import CatalogDictionary
 from srcpy.Dictionary import SQLDictionary
 import config
 
+from collections import defaultdict
 
 # START [handleService]
 def handleService(catalog):
@@ -61,18 +62,16 @@ def backgroundApply(url):
 
 		# Instanciates SQLManager
 		sqlManager = SQLManagerClass()
-		
+
 		createDatabase(catalogManager, sqlManager)
 		checkValues(sqlManager)
 		updateValues(sqlManager)
 				
-		# Notify
 		StorageManager.writeResultInHistoric(url, "Exito")
 		Notifier.notifByMail("AC", True)
+		return Response ("Process done", status = 200)
 	except Exception as e:
-		logging.debug(str(e))
 		StorageManager.writeResultInHistoric(url, "Fracaso")
-		Notifier.notifByMail("AC", False, str(e))
 	finally:
 		q = taskqueue.Queue('default')
 		q.purge()
@@ -97,44 +96,62 @@ def createDatabase(catalogManager, sqlManager):
 			Exception - SQL exception
 	"""
 	logging.debug("CatalogApplyService: createDatabase")
-	listCatalogSheetNames = catalogManager._getListSheetNames()
-	for sheetName in listCatalogSheetNames:
-		logging.debug("Creating table: " + sheetName)
-		sheet = catalogManager._getSheetByName(sheetName)
-			
-		#Drop table if exists
-		dropQuery = sqlManager._getDropTableQuery(sheetName.replace(" ", "_")) # Replace to SUMA_ASEGURADA
-		sqlManager._executeQuery(dropQuery)
+	try:
+		listError = []
 
-		# Create table 	
-		columnNames = []
-		for cell in list(sheet.rows)[0]:
-			columnNames.append(cell.value.encode('utf-8').replace(" ", ""))
-			#"\""+
-		createTableQuery = SQLDictionary._getCatalogCreateTableQuery(sheetName).format(v = columnNames)
-		logging.debug(columnNames)
-		logging.debug(createTableQuery)
-		sqlManager._executeQuery(createTableQuery)
+		listCatalogSheetNames = catalogManager._getListSheetNames()
+		for sheetName in listCatalogSheetNames:
+			logging.debug("Creating table: " + sheetName)
+			sheet = catalogManager._getSheetByName(sheetName)
+				
+			#Drop table if exists
+			dropQuery = sqlManager._getDropTableQuery(sheetName.replace(" ", "_")) # Replace to SUMA_ASEGURADA
+			sqlManager._executeQuery(dropQuery)
 
-		# Parse sheet to insert data
-		logging.debug("Populating table: " + sheetName)
-		# Get all lines and slice them to get values only
-		tableDataList = list(sheet.rows)[1:]
-		for line in tableDataList:
-			valuesList = []
-			# Build valuesList
-			if not isLastLine(line):
-				for cell in line:
-					if(cell is None):
+			# Create table 	
+			columnNames = []
+			for cell in list(sheet.rows)[0]:
+				columnNames.append(cell.value.encode('utf-8').replace(" ", ""))
+				#"\""+
+			createTableQuery = SQLDictionary._getCatalogCreateTableQuery(sheetName).format(v = columnNames)
+			logging.debug(columnNames)
+			logging.debug(createTableQuery)
+			sqlManager._executeQuery(createTableQuery)
+
+			# Parse sheet to insert data
+			logging.debug("Populating table: " + sheetName)
+			# Get all lines and slice them to get values only
+			tableDataList = list(sheet.rows)[1:]
+			for line in tableDataList:
+				try:
+					valuesList = []
+					# Build valuesList
+					if not isLastLine(line):
+						for cell in line:
+							if(cell is None):
+								continue
+							if(cell is not None):
+								valuesList.append("\""+str(cell.value)+"\"")
+						# Formatting the SQL Query if there are values
+						if valuesList:
+							SQLQuery = SQLDictionary._getCatalogInsertTableQuery(sheetName).format(v = valuesList)
+							sqlManager._executeQuery(SQLQuery)
+					else:
 						continue
-					if(cell is not None):
-						valuesList.append("\""+str(cell.value)+"\"")
-				# Formatting the SQL Query if there are values
-				if valuesList:
-					SQLQuery = SQLDictionary._getCatalogInsertTableQuery(sheetName).format(v = valuesList)
-					sqlManager._executeQuery(SQLQuery)
-			else:
-				continue
+				except Exception as ex:
+					logging.debug("Exception: " + str(ex))
+					listError.append(str(ex).replace("\"", "").replace("\'", ""))
+					continue
+
+		if len(listError) != 0:
+			logging.debug("Errors found")
+			Notifier.notifByMail("AC", False, listError)
+			raise Exception
+
+		logging.debug("No errors found")
+	except Exception as e:
+		raise e
+
 # END [createDatabase]
 
 
@@ -142,11 +159,17 @@ def createDatabase(catalogManager, sqlManager):
 def checkValues(sqlManager):
 	"""
 		For each catalog in table Concentrado, and for each table associated to this catalog,
-		assert that every line existing in this table is described in the catalog. Thus, the table must be incluided
-		in the catalog.
+		assert that every line, applying filters to eliminate comodine values, existing in this 
+		table is described in the catalog. Thus, the table must be incluided in the catalog.
+		Each table doesnt have explicitly all the columns of the catalog, so we have to adapt the 
+		queries to each table
+
+
+
 
 		Input:
 		sqlManager - To acces the database
+		listError
 
 		Output:
 		AssertException - If table is not incluided in the catalog
@@ -154,59 +177,172 @@ def checkValues(sqlManager):
 	"""
 	logging.debug("CatalogApplyService: checkValues")
 	listNames = sqlManager._getColumnsName("Concentrado")
-	logging.debug("Catalogs: " + str(listNames))
+	listError = []
+	logging.debug("Catalogs to check: " + str(listNames))
+	try:
+		# For each type of catalog ...
+		for catalogName in listNames:
+			logging.debug("Loop in " + catalogName)
+			tableList = sqlManager._executeQuery("SELECT DISTINCT {col} FROM Concentrado WHERE {col} <> \"None\"".format(col = catalogName))
+			logging.debug("Tables associated: " + str(tableList))
+			# ... and for each related table
+			for table in tableList:
+				logging.debug("Checking " + table[0])
+				# VERSION and PRODUCTOS are almost the same
+				if catalogName in ["VERSION", "PRODUCTOS"]:
+					#############################
+					# Vertical control
+					# For each column of Catalog_Table, we exclude possible comodin values of the table's adapted column
+					# and check that the values in it are stored in the catalog
+					listColumn = sqlManager._getColumnsName(catalogName)
+					logging.debug(str(listColumn))
+					# For each column of the catalog
+					for column in listColumn:
+						logging.debug("Vertical control " + column)
+						# Get the associated column in the table
+						colTable = adaptColumn(column)
+						# Some columns are not mapped
+						if colTable is not None:
+							if CatalogDictionary.columnToIgnoreByTable(table[0]) is not None and colTable in CatalogDictionary.columnToIgnoreByTable(table[0]):
+								continue
+							query = "" 
+							# If the table may present comodin values for this column, we have to filter them
+							if CatalogDictionary.getTableByToIgnoreComodin(colTable) is not None and table[0] in CatalogDictionary.getTableByToIgnoreComodin(colTable):
+								logging.debug("This column may present comodin values")
+								valuesToIgnore = CatalogDictionary.getValueToIgnoreByTableAndComodin(table[0], colTable)
+								query = """
+								SELECT DISTINCT {colT} FROM {table} WHERE {colT} NOT IN {values} AND {colT} NOT IN (SELECT DISTINCT {colC} FROM {cat})
+								""".format(colT = colTable, table = table[0], cat = catalogName, values = valuesToIgnore, colC = column)
+							# The column hasnt comodin value
+							else:
+								# 6WT only has TCNUMVER and CDPLAN, the CDPLAN check passes in the first branch
+								if table[0] == "KTPT6WT" and colTable != "TCNUMVER":
+									continue
+								logging.debug("This column hasnt comodin columns")
+								query = """
+								SELECT DISTINCT {colT} FROM {table} WHERE {colT} NOT IN (SELECT DISTINCT {colC} FROM {cat})
+								""".format(colT = colTable, table = table[0], cat = catalogName, colC = column)
 
-	# For each type of catalog 
-	for catalogName in listNames:
-		logging.debug("Loop in " + catalogName)
-		colTable = sqlManager._executeQuery("SELECT {col} FROM Concentrado WHERE {col} <> \"None\"".format(col = catalogName))
-		logging.debug(colTable)
+							logging.debug(query)
+							dataTable = sqlManager._executeQuery(query)
 
-		# Version is special as it presents the associated table inside the table
-		if catalogName == "VERSION":
-			# For each table associated
-			for table in colTable:
-				logging.debug("Loop in " + table[0])
-				# Get all lines related to this table
-				data = sqlManager._executeQuery("SELECT * FROM VERSION WHERE TABLA = \"{0}\"".format(table[0]))
-				# KTPT6WT is special as it doesnt need all columns
-				if table[0] == "KTPT6WT":
-					diff = sqlManager._executeQuery("""
-						SELECT {table}.{planT}, {table}.{numverT} 
-						FROM {cat} RIGHT JOIN {table}
-						ON {cat}.{planC} = {table}.{planT}
-						AND {cat}.{numverC} = {table}.{numverT}
-						WHERE {cat}.{planC} IS NULL
-						""".format(cat = catalogName, table = table[0],
-							planC = "CODIGODELPLAN", planT = "CDPLAN",
-							numverC = "VERSI\xc3\x93NACTUAL", numverT = "TCNUMVER"))
-					logging.debug(diff)
-					assert len(diff) == 0, "Una linea no corresponde al catalogo {0} en la tabla {1}: {2}".format(catalogName, table[0], diff)
+							try:
+								assert len(dataTable) == 0, "Valor de {0}: {1} de la tabla {2} no es permitida por el catalogo {3}.".format(colTable, dataTable, table[0], catalogName)
+							except Exception as e:
+								logging.debug(str(e))
+								listError.append(str(e).replace("\"", "").replace("\'", ""))
+
+						else:
+							continue
+
+					###########################
+					# Horizontal control
+					# Select lines from the table and check that they are included in the catalog
+					logging.debug("Horizontal control 1: " + catalogName + "/" + table[0])
+					query = CatalogDictionary.getSelectDifferenceQueryByCatalogAndTable(catalogName, table[0])
+					dataTable = sqlManager._executeQuery(query)
+					try:
+						assert len(dataTable) == 0, "Linea: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
+					except Exception as e:
+						logging.debug("AssertionError " + str(e))
+						listError.append(str(e).replace("\"", "").replace("\'", ""))
+				# SUMA SEGURADA must have a double check too
+				elif catalogName == "SUMA_ASEGURADA":
+					###########
+					# Vertical Control
+					# Control CDSUASEG, VASUASEG, CDSAPERM, CPASEGUR
+					# Get Catalog column name
+					listColumn = sqlManager._getColumnsName(catalogName)
+					if table[0] == "KTPTCKT":
+						query = """ 
+						SELECT DISTINCT CPASLINN FROM {table} WHERE CPASLINN NOT IN (SELECT DISTINCT DSELEMEN FROM SUMA_ASEGURADA)
+						""".format(table = table[0])
+						dataTable = sqlManager._executeQuery(query)
+
+						try:
+							assert len(dataTable) == 0, "Valor de CPASLINN: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
+						except Exception as e:
+							logging.debug(str(e))
+							listError.append(str(e).replace("\"", "").replace("\'", ""))
+
+						query = """ 
+						SELECT DISTINCT CPASLINI FROM {table} WHERE CPASLINI NOT IN (SELECT DISTINCT DSELEMEN FROM SUMA_ASEGURADA)
+						""".format(table = table[0])
+						dataTable = sqlManager._executeQuery(query)
+
+						try:
+							assert len(dataTable) == 0, "Valor de CPASLINI: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
+						except Exception as e:
+							logging.debug(str(e))
+							listError.append(str(e).replace("\"", "").replace("\'", ""))
+
+					else:
+						for column in listColumn:
+							logging.debug("Vertical control " + column)
+							colTable = adaptASEGColumn(column, table[0])
+							# Some column are not mapped
+							if colTable is not None:
+								query = "" 
+								# If the table may present comodin values for this column, we have to filter them
+								if CatalogDictionary.getTableByToIgnoreComodin(colTable) is not None and table[0] in CatalogDictionary.getTableByToIgnoreComodin(colTable):
+									logging.debug("This column may present comodin values")
+									valuesToIgnore = CatalogDictionary.getValueToIgnoreByTableAndComodin(table[0], colTable)
+									query = """ 
+									SELECT DISTINCT {colT} FROM {table} WHERE {colT} NOT IN {values} AND {colT} NOT IN (SELECT DISTINCT {colC} FROM SUMA_ASEGURADA)
+									""".format(colT = colTable, table = table[0], values = valuesToIgnore, colC = column)
+								# The column hasnt comodin value
+								else:
+									logging.debug("This column hasnt comodin columns")
+									query = """ 
+									SELECT DISTINCT {colT} FROM {table} WHERE {colT} NOT IN (SELECT DISTINCT {colC} FROM SUMA_ASEGURADA)
+									""".format(colT = colTable, table = table[0], colC = column)
+
+								logging.debug(query)
+								dataTable = sqlManager._executeQuery(query)
+
+								try:
+									assert len(dataTable) == 0, "Valor de {0}: {1} de la tabla {2} no es permitida por el catalogo {3}.".format(colTable, dataTable, table[0], catalogName)
+								except Exception as e:
+									logging.debug(str(e))
+									listError.append(str(e).replace("\"", "").replace("\'", ""))
+					###########################
+					# Horizontal control
+					# Select lines from the table and check that they are included in the catalog
+					logging.debug("Horizontal control 2: " + catalogName + "/" + table[0])
+					query = CatalogDictionary.getSelectDifferenceQueryByCatalogAndTable(catalogName, table[0])
+					dataTable = sqlManager._executeQuery(query)
+					try:
+						assert len(dataTable) == 0, "Linea: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
+					except Exception as e:
+						logging.debug("AssertionError " + str(e))
+						listError.append(str(e).replace("\"", "").replace("\'", ""))
+				# Other Catalogs are basically the control of a single column
 				else:
-					diff = sqlManager._executeQuery("""
-						SELECT {table}.*
-						FROM {cat} RIGHT JOIN {table}
-						ON {cat}.{prodteC} = {table}.{prodteT}
-						AND {cat}.{prodcoC} = {table}.{prodcoT}
-						AND {cat}.{planC} = {table}.{planT}
-						AND {cat}.{numverC} = {table}.{numverT}
-						WHERE {cat}.{prodteC} IS NULL
-						""".format(cat = catalogName, table = table[0], prodteC = "PRODUCTOTECNICO",
-							prodteT = "CDPRODTE", prodcoC = "PRODUCTOCOMERCIAL", prodcoT = "CDPRODCO",
-							planC = "CODIGODELPLAN", planT = "CDPLAN",
-							numverC = "VERSI\xc3\x93NACTUAL", numverT = "TCNUMVER"))
-					logging.debug(diff)
-					assert len(diff) == 0, "Una linea no corresponde al catalogo {0} en la tabla {1}: {2}".format(catalogName, table[0], diff)
-		# For every each catalog
-		else:
-			# For each table associated
-			for table in colTable:
-				logging.debug("Loop in " + table[0])
-				# Get the query to apply depending on the catalog type and the table
-				# Every table doesn't have the same columns
-				query = CatalogDictionary.getQueryByCatalogAndTable(catalogName, table[0])
-				diff = sqlManager._executeQuery(query)
-				assert len(diff) == 0, "Una linea no corresponde al catalogo {0} en la tabla {1}: {2}".format(catalogName, table[0], diff)
+					###########################
+					# Horizontal control
+					# Select lines from the table and check that they are included in the catalog
+					logging.debug("Horizontal control 3: " + catalogName + "/" + table[0])
+					query = CatalogDictionary.getSelectDifferenceQueryByCatalogAndTable(catalogName, table[0])
+					dataTable = sqlManager._executeQuery(query)
+					try:
+						assert len(dataTable) == 0, "Linea: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
+					except Exception as e:
+						logging.debug("AssertionError " + str(e))
+						listError.append(str(e).replace("\"", "").replace("\'", ""))
+
+		if len(listError) != 0:
+			logging.debug("Errors found.")
+			Notifier.notifByMail("AC", False, listError)
+			raise EndException
+
+	except EndException as ee:
+		logging.debug("Except to end process")
+		raise ee
+	except Exception as ex:
+		logging.debug(str(ex))
+		Notifier.notifByMail("AC", False, str(ex).replace("\"", "").replace("\'", ""))
+		raise ex
+				
 # END [checkValues]
 
 
@@ -224,38 +360,90 @@ def updateValues(sqlManager):
 		Exception if something goes wrong
 	"""
 	try:
+
+		listError = []
+
+		logging.debug("CatalogApplyService updateValues")
 		# We start TRANSACTION so we can cancel changes if something goes wrong
 		sqlManager._executeQuery("START TRANSACTION")
-		for sheetName in ["VERSION", "DEDUCIBLES", "SUMAASEGURADA"]:
-			logging.debug("Loop in " + sheetName)
+		for sheetName in ["VERSION", "DEDUCIBLE", "SUMA_ASEGURADA"]:
+			logging.debug("Loop in catalog " + sheetName)
 			# Select Table
-			if sheetName in ["DEDUCIBLES", "SUMAASEGURADA"]:
-				tableData = sqlManager._executeQuery("SELECT CDELEMEN, NCODIGO FROM {0}".format(sheetName))			
-				tableList = sqlManager._executeQuery("SELECT {0} FROM Concentrado".format(sheetName))
-				logging.debug("Tables to act on " + str(tableList))
-				for table in tableList:
-					logging.debug("Loop in " + table)
-					for line in tableData:
-						# Build and execute query
-						query = "UPDATE {table} SET {col} = {newV} WHERE {col} = {oldV}".format(
-							table = table,
-							col = CatalogDictionary.getColumnBySheet(sheetName, table),
-							oldV = line[0],
-							newV = line[1])
+			if sheetName in ["DEDUCIBLE", "SUMA_ASEGURADA"]:
+				if sheetName == "SUMA_ASEGURADA":
+					tableData = sqlManager._executeQuery("SELECT CDELEMEN, NCODIGO FROM {0}".format(sheetName))			
+					tableList = sqlManager._executeQuery("SELECT {0} FROM Concentrado WHERE {0} <> \"None\"".format(sheetName))
+					logging.debug("Tables to act on " + str(tableList))
+					for table in tableList:
+						logging.debug("Loop in table " + table[0])
+						if table[0] in ["KTPTCPT", "KTPTBCT", "KTPTBQT", "KTPTDNT"]:
+							for line in tableData:
+								try:
+									# Build and execute query
+									query = "UPDATE {table} SET {col} = \"{newV}\" WHERE {col} = \"{oldV}\"".format(
+										table = table[0],
+										col = CatalogDictionary.getColumnBySheet(sheetName, table[0]),
+										oldV = line[0],
+										newV = line[1])
+									logging.debug(query)
+									sqlManager._executeQuery(query)	
+								except Exception as e:
+									logging.debug("Exception " + str(e))
+									listError.append(str(e).replace("\"", "").replace("\'", ""))
+									continue
+						else: 
+							continue
+				elif sheetName == "DEDUCIBLE":
+					tableData = sqlManager._executeQuery("SELECT CDELEMEN, NCODIGO FROM {0}".format(sheetName))			
+					tableList = sqlManager._executeQuery("SELECT DEDUCIBLES FROM Concentrado WHERE DEDUCIBLES <> \"None\"")
+					logging.debug("Tables to act on " + str(tableList))
+					for table in tableList:
+						logging.debug("Loop in table " + table[0])
+						for line in tableData:
+							try:
+								# Build and execute query
+								query = "UPDATE {table} SET {col} = \"{newV}\" WHERE {col} = \"{oldV}\"".format(
+									table = table[0],
+									col = CatalogDictionary.getColumnBySheet(sheetName, table[0]),
+									oldV = line[0],
+									newV = line[1])
+								logging.debug(query)
+								sqlManager._executeQuery(query)	
+							except Exception as e:
+								logging.debug("Exception " + str(e))
+								listError.append(str(e).replace("\"", "").replace("\'", ""))
+								continue			
+			else:
+				versionData = sqlManager._executeQuery("SELECT * FROM VERSION")
+				# Table Column is incluided in the table
+				for line in versionData:
+					try:
+						query = CatalogDictionary.getUpdateVersionQueryByTable(line[1], line)					
 						logging.debug(query)
 						sqlManager._executeQuery(query)	
-			else:
-				tableData = sqlManager._executeQuery("SELECT * FROM VERSION")
-				# Table Column is incluided in the table
-				for line in tableData:
-					query = Catalog.getUpdateVersionQueryByTable(table, line)					
-					logging.debug(query)
-					sqlManager._executeQuery(query)	
+					except Exception as e:
+						logging.debug("Exception " + str(e))
+						listError.append(str(e).replace("\"", "").replace("\'", ""))
+						continue
+
+		if len(listError) != 0:
+			logging.debug("Errors found.")
+			# Cancel changes
+			sqlManager._executeQuery("ROLLBACK")
+			Notifier.notifByMail("AC", False, listError)
+			raise EndException
+
+		logging.debug("No errors found.")
 		# Commit changes
 		sqlManager._executeQuery("COMMIT")
+
+	except EndException as ee:
+		logging.debug("Except to end process")
+		raise ee
+
 	except Exception as e:
-		# Cancel changes
-		sqlManager._executeQuery("ROLLBACK")
+		logging.debug(str(ex))
+		Notifier.notifByMail("AC", False, str(ex).replace("\"", "").replace("\'", ""))
 		raise e				
 # END [updateValues]
 
@@ -271,3 +459,41 @@ def isLastLine(iterable):
 			return False
 	return True
 # END [isLastLine]
+
+
+def adaptColumn(col):
+	if col == "FECHA":
+		return "FEVALOR"
+	elif col == "PRODUCTOTECNICO":
+		return "CDPRODTE"
+	elif col == "PRODUCTOCOMERCIAL":
+		return "CDPRODCO"
+	elif col == "CODIGODELPLAN":
+		return "CDPLAN"
+	elif col == "VERSIONACTUAL":
+		return "TCNUMVER"
+	else:
+		return None
+
+
+def adaptASEGColumn(col, table):
+	if col == "CDELEMEN":
+		if table in ["KTPTBCT", "KTPTCPT"]:
+			return "CDSUASEG"
+		elif table in ["KTPTDNT"]:
+			return "CDSAPERM"
+		else:
+			return None
+	# VASUASEG
+	if col == "CDELEMEN":
+		if table in ["KTPTBCT", "KTPTCPT", "KTPT8LT"]:
+			return "VASUASEG"
+		else:
+			return "CPASEGUR"
+
+
+# This exception allows the process to end
+# when listError is populated and thus consider 
+# other types of exception.
+class EndException(Exception):
+	pass

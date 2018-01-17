@@ -178,9 +178,42 @@ def createDatabase(excelManager):
 # START [checkComodin]
 def checkComodin():
 	"""
-		For each table in tha database that contains comodin,
-		interrogates the database, selects the comodin column
-		and compares the value to what is expected.
+		Algorithm:
+		For each table with comodin:
+			For each comodin in table:
+				If it is conditioned_comodin_column:
+					Get lines filling conditions
+					Assert Value = conditioned_comodin_column
+
+					Get line non filling conditions 
+					If Integer expected:
+						If it is default_comodin_value:
+							Assert Value is Integer or default_comodin_value
+						If not:
+							Assert Value is Integer
+					If Decimal expected
+						If it is default_comodin_value:
+							Assert Value is Decimal or default_comodin_value
+						If not:
+							Assert Value is Decimal
+					If String expected
+						Assert Value is not condition_comodin_value
+
+				If not:
+					Get whole column
+					If Integer expected:
+						If it is default_comodin_value:
+							Assert Value is Integer or default_comodin_value
+						If not:
+							Assert Value is Integer
+					If Decimal expected
+						If it is default_comodin_value:
+							Assert Value is Decimal or default_comodin_value
+						If not:
+							Assert Value is Decimal
+
+		IMPORTANT: As we cannot check a String is type(String) or default_comodin_value as it is the same check,
+		we only check that in some cases, it is not the condition_comodin_value.
 
 		Output:
 			Exception - Details 
@@ -192,58 +225,29 @@ def checkComodin():
 
 		# Instanciates SQLManager
 		sqlManager = SQLManagerClass()
-		sheetsToCheck = ComodinDictionary.getSheetWithComodin()
+		tableToCheckList = ComodinDictionary.getTableWithComodin()
 
-		for sheet in sheetsToCheck:
-			logging.debug("Loop in: " + sheet)
+		for table in tableToCheckList:
+			logging.debug("Loop in: " + table)
 
 			# Get columns to check
-			columnsToCheck = ComodinDictionary.getComodinColumnBySheet(sheet)
+			columnsToCheck = ComodinDictionary.getComodinColumnByTable(table)
 			for column in columnsToCheck:
-				logging.debug(sheet + " : Loop in : " + column)
-				
-				# If integer column...
-				if(ComodinDictionary.getIntegerColumnBySheet(sheet) is not None and column in ComodinDictionary.getIntegerColumnBySheet(sheet)):
-					logging.debug("Integers are expected in this column")
-					# ... and if this column has conditions ...
-					if(ComodinDictionary.getConditionedComodinColumnBySheet(sheet) is not None and column in ComodinDictionary.getConditionedComodinColumnBySheet(sheet)):
-						logging.debug("Conditions are expected in this column")
-						listError = checkLines_Condition(sheet , column, sqlManager, listError)
-												
-					# ... and doesn't take conditions to check value
-					else:
-						logging.debug("No conditions are expected in this column")
-						# Get column
-						resultSet = sqlManager._executeQuery(sqlManager._getColumnByTableQuery(sheet, column))
-						if(len(resultSet) != 0):
-							# Check value of these lines
-							for result in resultSet:
-								try:
-									assert is_integer(result[0]) or result[0] == ComodinDictionary.getComodinValueBySheet(sheet, column), "Valor de comodin incorecta. Comodin: {1} - Valor: {2}".format(sheet, column, result[0])
-								except Exception as ex:
-									listError.append((sheet, str(ex).replace("\"", "").replace("\'", "")))
-									continue
-				# If decimal column...
-				elif(ComodinDictionary.getDecimalColumnBySheet(sheet) is not None and column in ComodinDictionary.getDecimalColumnBySheet(sheet)):
-					logging.debug("Decimals are expected in this column")
-					# ... and if this column has conditions ...
-					if(ComodinDictionary.getConditionedComodinColumnBySheet(sheet) is not None and column in ComodinDictionary.getConditionedComodinColumnBySheet(sheet)):
-						logging.debug("Conditions are expected in this column")
-						listError = checkLines_Condition(sheet , column, sqlManager, listError)
+				logging.debug("Checking " + column + " in " + table)
+				# If the column may present a conditioned comodine value ...
+				if ComodinDictionary.getConditionedComodinColumnByTable(table) is not None and column in ComodinDictionary.getConditionedComodinColumnByTable(table):
+					logging.debug("This column may present a conditioned comodine value")
+					# ... check lines filling and non-filling conditions 
+					listError = checkLines_Condition(table , column, sqlManager, listError)
+				# If the column may not conditioned comodin value ...
+				else:
+					logging.debug("This column hasnt conditioned comodine value")
+					# ... get whole column
+					resultSet = sqlManager._executeQuery(sqlManager._getColumnByTableQuery(table, column))
+					# Check data depend column's type
+					listError = checkDataDependingOnColumntypes(table, column, resultSet, listError)
 
-					# ... and doesn't take conditions to check value
-					else:
-						logging.debug("No conditions are expected in this column")
-						# Get column
-						if(len(resultSet) != 0):
-							resultSet = sqlManager._executeQuery(sqlManager._getColumnByTableQuery(sheet, column))
-							for result in resultSet:
-								try:
-									assert is_decimal(result[0]) or result[0] == ComodinDictionary.getComodinValueBySheet(sheet, column), "Valor de comodin incorecta. Comodin: {1} - Valor: {2}".format(sheet, column, str(result[0]))
-								except Exception as ex:
-									listError.append((sheet, str(ex).replace("\"", "").replace("\'", "")))
-									continue
-
+			
 		# Concentrate listError by sheetName
 		# We will have something like d["KTPT"] = ["Error1", "Error2"]
 		# d can be empty
@@ -260,7 +264,7 @@ def checkComodin():
 		raise ee
 	except Exception as ex:
 		logging.debug(str(ex))
-		Notifier.notifByMail("DV", False, str(ex))
+		Notifier.notifByMail("DV", False, str(ex).replace("\"", "").replace("\'", ""))
 		raise ex
 	finally:
 		sqlManager._closeConnection()
@@ -268,7 +272,7 @@ def checkComodin():
 
 
 # START [checkLines_Condition_OK]
-def checkLines_Condition(sheet , column, sqlManager, listError):
+def checkLines_Condition(table , column, sqlManager, listError):
 	"""
 		Select all the lines in the table that fits with the condition
 		Assert that the value equals the conditioned comodin
@@ -283,56 +287,117 @@ def checkLines_Condition(sheet , column, sqlManager, listError):
 		Output:
 			AssertException - If control fails
 	"""
-	logging.debug("Checking Conditions OK")
-	# ... get lines fitting with the conditions
-	queryCond = getComodinCondition_OK_Query(sheet , column, sqlManager)
+	logging.debug("Checking values with Conditions OK")
+	# Get lines fitting with the conditions
+	queryCond = getComodinCondition_OK_Query(table , column, sqlManager)
+	
 	resultSet = sqlManager._executeQuery(queryCond)
+	
 
-	if(len(resultSet) != 0):
-		# Check value of these lines
-		for result in resultSet:
-			try:
-				assert str(result[0]) == ComodinDictionary.getConditionedComodinValueBySheet(sheet, column), "Valor de comodin incorecta. Comodin: {1} - Valor: {2}".format(sheet, column, str(result[0]))
-			except Exception as ex:
-				listError.append((sheet, str(ex).replace("\"", "").replace("\'", "")))
-				continue	
-	# Get the other lines
-	logging.debug("Checking Conditions NOK")
-	queryBis = getComodinCondition_NOK_Query(sheet, column, queryCond)
+	# Check value of these lines, assert these are the conditioned comodin value
+	for result in resultSet:
+		try:
+			assert str(result[0]) == ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column), "Valor de comodin incorecta. Checar condiciones. Comodin: {1} - Valor: {2}".format(table, column, str(result[0]))
+		except Exception as ex:
+			logging.debug("Exception: " + str(ex))
+			listError.append((table, str(ex).replace("\"", "").replace("\'", "")))
+			continue	
+
+	# Get lines not fitting with the conditions
+	logging.debug("Checking values with Conditions NOK")
+	queryBis = getComodinCondition_NOK_Query(table, column, queryCond)
 	resultSet = sqlManager._executeQuery(queryCond)
+	
 
-	if(len(resultSet) != 0):
-		# Check value of these lines
-		for result in resultSet:
+	# Check the numeric data
+	listError = checkDataDependingOnColumntypes(table, column, resultSet, listError)
+	# Check the alphanumeric data
+	# If the column is type String, we cannot confirm that the value is part of a Dictionary, but we can check that it is not the Conditioned Comodin Value
+	if ComodinDictionary.getAlphaNumericColumnByTable(table) is not None and column in ComodinDictionary.getAlphaNumericColumnByTable(table):
+		for line in resultSet:
 			try:
-				assert is_integer(result[0]) or str(result[0]) == ComodinDictionary.getComodinValueBySheet(sheet, column), "Valor de comodin incorecta. Comodin: {1} - Valor: {2}".format(sheet, column, str(result[0]))
+				assert line[0] != ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column), "Valor de comodin incorecta. Las condiciones no estan satisfechas. Comodin: {0} - Valor: {1}".format(column, str(line[0]))
 			except Exception as ex:
-				listError.append((sheet, str(ex).replace("\"", "").replace("\'", "")))
+				logging.debug("Exception: " + str(ex))
+				listError.append((table, str(ex).replace("\"", "").replace("\'", "")))
 				continue
 	return listError
 # END [checkLines_Condition_OK]
 
 
+# START [checkDataDependingOnColumntypes]
+def checkDataDependingOnColumntypes(table, column, resultSet, listError):
+	"""
+		Checks each resultSet's line is Integer or Decimal, or possible default comodin value.
+	"""
+	# If the column is type Integer
+	if ComodinDictionary.getIntegerColumnByTable(table) is not None and column in ComodinDictionary.getIntegerColumnByTable(table):
+		logging.debug("This column presents Integer number")
+		# Check that is Integer or possibly default comodin value
+		listError = checkDataDependingOnDefaultComodinValue(table, column, resultSet, listError, True)
+	# If the column is type Decimal
+	elif ComodinDictionary.getDecimalColumnByTable(table) is not None and column in ComodinDictionary.getDecimalColumnByTable(table):
+		logging.debug("This column presents Decimal number")
+		# Check that is Decimal or possibly default comodin value
+		listError = checkDataDependingOnDefaultComodinValue(table, column, resultSet, listError, False)
+	return listError
+# END [checkDataDependingOnColumntypes]	
+
+
+# START [checkDataDependingOnDefaultComodinValue]
+def checkDataDependingOnDefaultComodinValue(table, column, resultSet, listError, isInteger):
+	"""
+		Checks numeric data, including default comodin value if the column may present one.
+	"""
+	# If the column may have a default comodin value ...
+	if ComodinDictionary.getDefaultComodinColumnByTable(table) is not None and column in ComodinDictionary.getDefaultComodinColumnByTable(table):
+		logging.debug("This column may have a default comodin value")
+		# ... assert that each line is an integer/decimal or the default comodin value
+		for line in resultSet:
+			try:
+				if isInteger:
+					assert is_integer(line[0]) or str(line[0]) == ComodinDictionary.getDefaultComodinValueByTableAndComodin(table, column), "Valor de comodin incorecta. Esperado Integer o Comodin por defecto. Comodin: {1} - Valor: {2}".format(column, str(line[0]))
+				else:
+					assert is_decimal(line[0]) or str(line[0]) == ComodinDictionary.getDefaultComodinValueByTableAndComodin(table, column), "Valor de comodin incorecta. Esperado Decimal o Comodin por defecto. Comodin: {1} - Valor: {2}".format(column, str(line[0]))
+			except Exception as ex:
+				listError.append((table, str(ex).replace("\"", "").replace("\'", "")))
+				continue
+	# If the column may not have a default comodin value ...
+	else:
+		logging.debug("This column hasnt a default comodin value")
+		# ... assert that each line is an integer/decimal
+		for line in resultSet:
+			try:
+				if isInteger:
+					assert is_integer(line[0]), "Valor de comodin incorecta. Esperado Integer. Comodin: {1} - Valor: {2}".format(column, str(line[0]))
+				else:
+					assert is_decimal(line[0]), "Valor de comodin incorecta. Esperado Decimal. Comodin: {1} - Valor: {2}".format(column, str(line[0]))
+			except Exception as ex:
+				listError.append((table, str(ex).replace("\"", "").replace("\'", "")))
+				continue
+	return listError
+# END [checkDataDependingOnDefaultComodinValue]
+
+
 # START [getComodinCondition_OK_Query]
-def getComodinCondition_OK_Query(sheet , column, sqlManager):
+def getComodinCondition_OK_Query(table , column, sqlManager):
 	"""
 		Returns the Query to select lines that fit with conditions
 
 		Input:
-			Sheet - Table Name
+			Table - Table Name
 			Column - Column Name
 
 		Output:
 			Query
 	"""
-	conditions = ComodinDictionary.getConditionColumnBySheet(sheet)
-	logging.debug("Conditions: "+ str(conditions))
+	conditions = ComodinDictionary.getConditionColumnByTable(table)
 	cN = []
 	cV = []
 	for c in conditions:
 		cN.append(c)
-		cV.append(ComodinDictionary.getConditionValueBySheet(sheet, c))
-	return sqlManager.getSelectComodinQuery(sheet, column, cN, cV)
+		cV.append(ComodinDictionary.getConditionValueByTableAndColumn(table, c))
+	return sqlManager.getSelectComodinQuery(table, column, cN, cV)
 # END [getComodinCondition_OK_Query]
 
 
@@ -353,7 +418,7 @@ def getComodinCondition_NOK_Query(table, column, queryConditionOK):
 	return "SELECT DISTINCT {0} FROM {1} WHERE {0} NOT IN ({2})".format(column, table, queryConditionOK)
 # END [getComodinCondition_NOK_Query]
 
-
+#########################  UTILS  ##############################
 def is_integer(s):
 	try:
 		int(s)
