@@ -58,10 +58,17 @@ class SQLManagerClass:
 	# START [_getTable]
 	# Returns the content of the table <tableName>
 	def _getTable(self, tableName):		
-		logging.debug("SQLManager _getTable")
 		return self._executeQuery(self._getSelectQuery(tableName))	
 	# END [_getTable]
 
+
+	# START [_getTable]
+	# Returns the content of the table <tableName>
+	# This table is made exclusively to get data from the DB as it is
+	# Without any format change
+	def _getTableBis(self, tableName):		
+		return self._executeQueryBis(self._getSelectQuery(tableName))	
+	# END [_getTable]
 
 	# START [_executeQuery]
 	# Executes the query and return result
@@ -71,17 +78,23 @@ class SQLManagerClass:
 	# END [_executeQuery]
 
 
+	# START [_executeQuery]
+	# Executes the query and return result
+	def _executeQueryBis(self, SQLQuery):		
+		self.cursor.execute(SQLQuery)
+		return self.cursor
+	# END [_executeQuery]
+
+
 	# START [_getSelectQuery]
 	# Returns the query to select the whole table
 	def _getSelectQuery(self, tableName):		
-		logging.debug("SQLManager _getSelectQuery")
 		return "SELECT * FROM {0}".format(tableName)
 	# END [_getSelectQuery]
 
 
 	# START [_getColumnByTableQuery]
 	def _getColumnByTableQuery(self, table, column):
-		logging.debug("SQLManager _getColumnByTable")
 		return "SELECT {0} FROM {1}".format(column, table)
 	# END [_getColumnByTableQuery]
 
@@ -89,7 +102,6 @@ class SQLManagerClass:
 	# START [_getSelectCountQuery]
 	# Returns the query to select the whole table
 	def _getSelectCountQuery(self, tableName):
-		logging.debug("SQLManager _getSelectCountQuery")
 		return "SELECT COUNT(*) FROM {0}".format(tableName)
 	# END [_getSelectCountQuery]
 

@@ -52,10 +52,14 @@ def backgroundExport():
 		# For each name
 		for name in listNames:
 			# Select sheet in Template
-			sheet = workbook.get_sheet_by_name(name[0])
+			try:
+				sheet = workbook.get_sheet_by_name(name[0])
+			except Exception as e:
+				logging.debug(str(e))
+				continue
 			if sheet is not None:
 				# SELECT * FROM <tableName>
-				tableValues = sqlManager._getTable(name[0])
+				tableValues = sqlManager._getTableBis(name[0])
 				# Set Excel cursor to FLoD
 				cursor = ExcelManager.getFirstLineOfData(name[0])
 				# For each line
@@ -65,7 +69,7 @@ def backgroundExport():
 					for cell in line:
 						excelColCount += 1
 						# Write data into Excel sheet
-						sheet = ExcelManager.setCell(sheet, cursor, excelColCount, str(cell))
+						ExcelManager.setCell(sheet, cursor, excelColCount, str(cell))
 					cursor += 1
 
 		# Save Excel to Storage

@@ -39,7 +39,6 @@ class ExcelManagerClass:
 # Set the specified cell with the value
 def setCell(sheet, row, col, value):
 	sheet.cell(row = row, column = col, value = value)
-	return sheet
 # END [setCell]
 
 
