@@ -32,10 +32,10 @@ def handleService(file):
 	logging.debug("DataValidationService: handleService")
 	try:
 		# Check if the control cifras table exists
-		#try:
-		#	SQLManagerClass()._getTable("CONTROL_CIFRAS")
-		#except:
-		#	return Response("Favor de ingresar el control de cifras primero.", status = 420)
+		try:
+			SQLManagerClass()._getTable("CONTROL_CIFRAS")
+		except:
+			return Response("Favor de ingresar el control de cifras primero.", status = 420)
 		# Save file to Storage
 		url = StorageManager.saveFilePBA(file)
 	except:
@@ -61,7 +61,7 @@ def backgroundValidation(url):
 		pbaManager = ExcelManagerClass(pbaFile, True)
 		
 		createDatabase(pbaManager)
-		#registryControl()
+		registryControl()
 		checkComodin()
 		StorageManager.writeResultInHistoric(url, "Exito")
 		Notifier.notifByMail("DV", True)
@@ -90,11 +90,28 @@ def registryControl():
 		# Instanciates SQLManager
 		sqlManager = SQLManagerClass()
 		registryNumberList = sqlManager._getTable("CONTROL_CIFRAS")
+
+		listError = []
+
 		for table in registryNumberList:
-			tableCount = sqlManager._executeQuery(sqlManager._getSelectCountQuery(table[0]))[0][0]
-			assert tableCount == table[1], "Control de cifras incorrecto. Hoja: {0} - Esperado: {1}, obtenido: {2}".format(table, table[1], tableCount)
+			try:
+				tableCount = sqlManager._executeQuery(sqlManager._getSelectCountQuery(table[0]))[0][0]
+				assert tableCount == table[1], "Control de cifras incorrecto. Esperado: {0}, obtenido: {1}".format(table[1], tableCount)
+			except Exception as ex:
+				logging.debug("Exception: " + str(ex))
+				listError.append((table[0], str(ex).replace("\"", "").replace("\'", "")))
+				continue
+
+		d = defaultdict(list)
+		for k,v in listError:
+			d[k].append(v)
+
+		if len(d) != 0:
+			logging.debug("Errors found.")
+			Notifier.notifByMail("DV", False, d)
+			raise Exception
+
 	except Exception as e:
-		logging.debug(str(e))
 		raise e
 	finally:
 		sqlManager._closeConnection()
