@@ -16,6 +16,10 @@ angular.module('gmmApp')
     			break;
     		case 2:
     			$state.go('main.cifras');
+    			break;
+    		case 3:
+    			$state.go('main.catalogos');
+    			break;
     	}
     }
   });
