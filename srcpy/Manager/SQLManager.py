@@ -51,7 +51,11 @@ class SQLManagerClass:
 	# Retuns the columns' name of the specified table
 	def _getColumnsName(self, tableName):
 		logging.debug("SQLManager _getColumnsName")
-		return self._executeQuery("SHOW columns FROM {0}".format(tableName))
+		cursor = self._executeQuery("SHOW columns FROM {0}".format(tableName))
+		listC = []
+		for x in cursor:
+			listC.append(x[0])
+		return listC
 	# END [_getColumnsName]
 
 

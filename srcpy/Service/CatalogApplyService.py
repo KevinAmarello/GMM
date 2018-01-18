@@ -80,26 +80,53 @@ def backgroundApply(url):
 # END [backgroundApply]
 
 
-
+# START [checkValidity]
 def checkValidity(catalogManager):
+	"""
+		Check that the file is valid <=> Sheets that contain new versions
+		have all lines filled.
+		If not, notify.
+	"""
 	logging.debug("CatalogApplyService: checkValidity")
 	try:
+		listError = []
+
+		# Sheets with new value
 		for sheet in ["VERSION", "DEDUCIBLE", "SUMA ASEGURADA"]:
 			logging.debug("Loop in " + sheet)
-			col = 0
-			if sheet == "VERSION":
-				col = 6
-			else:
-				col = 3
-			s = catalogManager._getSheetByName(sheet)
-			for i in range(1, s.max_row + 1):
-				if s.cell(row = i, column = col).value is None:
-					Notifier.notifByMail("AC", False, "Hoja {0} no tiene todas sus celdas de nueva version llenas.".format(sheet))
-					raise Exception
-	except Exception as e:
-		logging.debug(str(e))
-		raise e
+			try:
+				# Get column to check
+				col = 0
+				if sheet == "VERSION":
+					col = 7
+				else:
+					col = 4
+				s = catalogManager._getSheetByName(sheet)
+				# Parse all lines
+				for i in range(2, s.max_row + 1):
+					# If it is not last line
+					if not isLastLineLittle([s.cell(row = i, column = x) for x in range(1,4)]):
+						# Check there is value
+						if s.cell(row = i, column = col).value is None:
+							listError.append("Hoja {0} no tiene todas sus celdas de nueva version llenas.".format(sheet))
+							break
+					else:
+						break
+			except Exception as e:
+				logging.debug(str(e))
+				listError.append(str(e))				
+				continue
 
+		if len(listError) != 0:
+			logging.debug("Errors found")
+			logging.debug(str(listError))
+			Notifier.notifByMail("AC", False, listError)
+			raise Exception
+
+		logging.debug("No errors found")
+	except Exception as e:
+		raise e
+# END [checkValidity]
 
 
 # START [createDatabase]
@@ -191,7 +218,6 @@ def checkValues(sqlManager):
 
 		Input:
 		sqlManager - To acces the database
-		listError
 
 		Output:
 		AssertException - If table is not incluided in the catalog
@@ -200,12 +226,11 @@ def checkValues(sqlManager):
 	logging.debug("CatalogApplyService: checkValues")
 	listNames = sqlManager._getColumnsName("Concentrado")
 	listError = []
-	logging.debug("Catalogs to check: " + str(listNames))
 	try:
 		# For each type of catalog ...
 		for catalogName in listNames:
 			logging.debug("Loop in " + catalogName)
-			tableList = sqlManager._executeQuery("SELECT DISTINCT {col} FROM Concentrado WHERE {col} <> \"None\"".format(col = catalogName))
+			tableList = sqlManager._executeQueryBis("SELECT DISTINCT {col} FROM Concentrado WHERE {col} <> \"None\"".format(col = catalogName))
 			logging.debug("Tables associated: " + str(tableList))
 			# ... and for each related table
 			for table in tableList:
@@ -246,7 +271,7 @@ def checkValues(sqlManager):
 								""".format(colT = colTable, table = table[0], cat = catalogName, colC = column)
 
 							logging.debug(query)
-							dataTable = sqlManager._executeQuery(query)
+							dataTable = sqlManager._executeQueryBis(query)
 
 							try:
 								assert len(dataTable) == 0, "Valor de {0}: {1} de la tabla {2} no es permitida por el catalogo {3}.".format(colTable, dataTable, table[0], catalogName)
@@ -262,7 +287,7 @@ def checkValues(sqlManager):
 					# Select lines from the table and check that they are included in the catalog
 					logging.debug("Horizontal control 1: " + catalogName + "/" + table[0])
 					query = CatalogDictionary.getSelectDifferenceQueryByCatalogAndTable(catalogName, table[0])
-					dataTable = sqlManager._executeQuery(query)
+					dataTable = sqlManager._executeQueryBis(query)
 					try:
 						assert len(dataTable) == 0, "Linea: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
 					except Exception as e:
@@ -279,7 +304,7 @@ def checkValues(sqlManager):
 						query = """ 
 						SELECT DISTINCT CPASLINN FROM {table} WHERE CPASLINN NOT IN (SELECT DISTINCT DSELEMEN FROM SUMA_ASEGURADA)
 						""".format(table = table[0])
-						dataTable = sqlManager._executeQuery(query)
+						dataTable = sqlManager._executeQueryBis(query)
 
 						try:
 							assert len(dataTable) == 0, "Valor de CPASLINN: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
@@ -290,7 +315,7 @@ def checkValues(sqlManager):
 						query = """ 
 						SELECT DISTINCT CPASLINI FROM {table} WHERE CPASLINI NOT IN (SELECT DISTINCT DSELEMEN FROM SUMA_ASEGURADA)
 						""".format(table = table[0])
-						dataTable = sqlManager._executeQuery(query)
+						dataTable = sqlManager._executeQueryBis(query)
 
 						try:
 							assert len(dataTable) == 0, "Valor de CPASLINI: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
@@ -320,7 +345,7 @@ def checkValues(sqlManager):
 									""".format(colT = colTable, table = table[0], colC = column)
 
 								logging.debug(query)
-								dataTable = sqlManager._executeQuery(query)
+								dataTable = sqlManager._executeQueryBis(query)
 
 								try:
 									assert len(dataTable) == 0, "Valor de {0}: {1} de la tabla {2} no es permitida por el catalogo {3}.".format(colTable, dataTable, table[0], catalogName)
@@ -332,7 +357,7 @@ def checkValues(sqlManager):
 					# Select lines from the table and check that they are included in the catalog
 					logging.debug("Horizontal control 2: " + catalogName + "/" + table[0])
 					query = CatalogDictionary.getSelectDifferenceQueryByCatalogAndTable(catalogName, table[0])
-					dataTable = sqlManager._executeQuery(query)
+					dataTable = sqlManager._executeQueryBis(query)
 					try:
 						assert len(dataTable) == 0, "Linea: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
 					except Exception as e:
@@ -345,7 +370,7 @@ def checkValues(sqlManager):
 					# Select lines from the table and check that they are included in the catalog
 					logging.debug("Horizontal control 3: " + catalogName + "/" + table[0])
 					query = CatalogDictionary.getSelectDifferenceQueryByCatalogAndTable(catalogName, table[0])
-					dataTable = sqlManager._executeQuery(query)
+					dataTable = sqlManager._executeQueryBis(query)
 					try:
 						assert len(dataTable) == 0, "Linea: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
 					except Exception as e:
@@ -465,6 +490,7 @@ def updateValues(sqlManager):
 
 	except Exception as e:
 		logging.debug(str(ex))
+		sqlManager._executeQuery("ROLLBACK")
 		Notifier.notifByMail("AC", False, str(ex).replace("\"", "").replace("\'", ""))
 		raise e				
 # END [updateValues]
@@ -477,6 +503,19 @@ def isLastLine(iterable):
 		an excel sheet.
 	"""
 	for element in iterable[:10]:
+		if element.value:
+			return False
+	return True
+# END [isLastLine]
+
+
+# START [isLastLine]
+def isLastLineLittle(iterable):
+	"""
+		Used to know if parameter is the last line of 
+		an excel sheet.
+	"""
+	for element in iterable:
 		if element.value:
 			return False
 	return True
