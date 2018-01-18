@@ -71,7 +71,7 @@ def notifByMail(operation, success, info = None):
 			##################### INSERT HTML FORMAT TO REDUCE LINK LENGTH ####################################
 			payload['body'] = "El proceso de exportacion sucedio exitosamente. <a href=\"{0}\">Descargar el archivo Excel</a>{0}. Esta disponible solo una hora".format(info)
 		else:
-			payload['body'] = "Un error ocurrio en el proceso de exportacion: {0}. Favor de reintentar.".format(info)
+			payload['body'] = "Un error ocurrio en el proceso de exportacion:<br> {0}. Favor de reintentar.".format(info)
 
 	if operation == "DV":
 		payload['subject'] = "Resultado de la validacion de datos."
@@ -85,12 +85,12 @@ def notifByMail(operation, success, info = None):
 		if success:
 			payload['body'] = "El proceso de aplicacion de catalogo sucedio exitosamente."
 		else:
-			payload['body'] = "Un error ocurrio en el proceso de aplicacion: {0}Favor de verificar el documento e intentar de nuevo.".format(info)
+			payload['body'] = "Un error ocurrio en el proceso de aplicacion:<br> {0}Favor de verificar el documento e intentar de nuevo.".format(info)
 
 	logging.debug(str(json.dumps(payload)))
 
 	headers = {'content-type': 'application/json'}
-	requests.post("http://api-dev.oscp.gnp.com.mx/notifier/notification/mail", data=json.dumps(payload), headers = headers)
+	requests.post("https://api-dev.oscp.gnp.com.mx/notifier/notification/mail", data=json.dumps(payload), headers = headers)
 # END [notifByMail]
 
 
