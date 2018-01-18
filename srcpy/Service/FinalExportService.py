@@ -59,7 +59,7 @@ def backgroundExport():
 				continue
 			if sheet is not None:
 				# SELECT * FROM <tableName>
-				tableValues = sqlManager._getTableBis(name[0])
+				tableValues = sqlManager._getTable(name[0])
 				# Set Excel cursor to FLoD
 				cursor = ExcelManager.getFirstLineOfData(name[0])
 				# For each line

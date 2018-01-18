@@ -1,7 +1,6 @@
 import os
 
 import MySQLdb
-from decimal import *
 import logging
 
 from srcpy.Dictionary import SQLDictionary
@@ -66,27 +65,11 @@ class SQLManagerClass:
 	# END [_getTable]
 
 
-	# START [_getTable]
-	# Returns the content of the table <tableName>
-	# This table is made exclusively to get data from the DB as it is
-	# Without any format change
-	def _getTableBis(self, tableName):		
-		return self._executeQueryBis(self._getSelectQuery(tableName))	
-	# END [_getTable]
-
 	# START [_executeQuery]
 	# Executes the query and return result
 	def _executeQuery(self, SQLQuery):		
 		self.cursor.execute(SQLQuery)
 		return sortResult(self.cursor)
-	# END [_executeQuery]
-
-
-	# START [_executeQuery]
-	# Executes the query and return result
-	def _executeQueryBis(self, SQLQuery):		
-		self.cursor.execute(SQLQuery)
-		return self.cursor
 	# END [_executeQuery]
 
 
@@ -164,15 +147,19 @@ class SQLManagerClass:
 	#################################################
 	################# END CLASS #####################
 
+
 def sortResult(cursor):
 	output = []
 	for row in cursor:
 		row_data = []
 		for data in row:
-			if type(data) is Decimal:
+			if isinstance(data, float):
 				row_data.append(float(data))
+			elif isinstance(data, int):
+				row_data.append(int(data))
 			else:
 				row_data.append(str(data))
 		output.append(row_data)
 	return output
+
 

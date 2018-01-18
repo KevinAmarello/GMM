@@ -230,7 +230,7 @@ def checkValues(sqlManager):
 		# For each type of catalog ...
 		for catalogName in listNames:
 			logging.debug("Loop in " + catalogName)
-			tableList = sqlManager._executeQueryBis("SELECT DISTINCT {col} FROM Concentrado WHERE {col} <> \"None\"".format(col = catalogName))
+			tableList = sqlManager._executeQuery("SELECT DISTINCT {col} FROM Concentrado WHERE {col} <> \"None\"".format(col = catalogName))
 			logging.debug("Tables associated: " + str(tableList))
 			# ... and for each related table
 			for table in tableList:
@@ -271,7 +271,7 @@ def checkValues(sqlManager):
 								""".format(colT = colTable, table = table[0], cat = catalogName, colC = column)
 
 							logging.debug(query)
-							dataTable = sqlManager._executeQueryBis(query)
+							dataTable = sqlManager._executeQuery(query)
 
 							try:
 								assert len(dataTable) == 0, "Valor de {0}: {1} de la tabla {2} no es permitida por el catalogo {3}.".format(colTable, dataTable, table[0], catalogName)
@@ -287,7 +287,7 @@ def checkValues(sqlManager):
 					# Select lines from the table and check that they are included in the catalog
 					logging.debug("Horizontal control 1: " + catalogName + "/" + table[0])
 					query = CatalogDictionary.getSelectDifferenceQueryByCatalogAndTable(catalogName, table[0])
-					dataTable = sqlManager._executeQueryBis(query)
+					dataTable = sqlManager._executeQuery(query)
 					try:
 						assert len(dataTable) == 0, "Linea: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
 					except Exception as e:
@@ -304,7 +304,7 @@ def checkValues(sqlManager):
 						query = """ 
 						SELECT DISTINCT CPASLINN FROM {table} WHERE CPASLINN NOT IN (SELECT DISTINCT DSELEMEN FROM SUMA_ASEGURADA)
 						""".format(table = table[0])
-						dataTable = sqlManager._executeQueryBis(query)
+						dataTable = sqlManager._executeQuery(query)
 
 						try:
 							assert len(dataTable) == 0, "Valor de CPASLINN: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
@@ -315,7 +315,7 @@ def checkValues(sqlManager):
 						query = """ 
 						SELECT DISTINCT CPASLINI FROM {table} WHERE CPASLINI NOT IN (SELECT DISTINCT DSELEMEN FROM SUMA_ASEGURADA)
 						""".format(table = table[0])
-						dataTable = sqlManager._executeQueryBis(query)
+						dataTable = sqlManager._executeQuery(query)
 
 						try:
 							assert len(dataTable) == 0, "Valor de CPASLINI: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
@@ -345,7 +345,7 @@ def checkValues(sqlManager):
 									""".format(colT = colTable, table = table[0], colC = column)
 
 								logging.debug(query)
-								dataTable = sqlManager._executeQueryBis(query)
+								dataTable = sqlManager._executeQuery(query)
 
 								try:
 									assert len(dataTable) == 0, "Valor de {0}: {1} de la tabla {2} no es permitida por el catalogo {3}.".format(colTable, dataTable, table[0], catalogName)
@@ -357,7 +357,7 @@ def checkValues(sqlManager):
 					# Select lines from the table and check that they are included in the catalog
 					logging.debug("Horizontal control 2: " + catalogName + "/" + table[0])
 					query = CatalogDictionary.getSelectDifferenceQueryByCatalogAndTable(catalogName, table[0])
-					dataTable = sqlManager._executeQueryBis(query)
+					dataTable = sqlManager._executeQuery(query)
 					try:
 						assert len(dataTable) == 0, "Linea: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
 					except Exception as e:
@@ -370,7 +370,7 @@ def checkValues(sqlManager):
 					# Select lines from the table and check that they are included in the catalog
 					logging.debug("Horizontal control 3: " + catalogName + "/" + table[0])
 					query = CatalogDictionary.getSelectDifferenceQueryByCatalogAndTable(catalogName, table[0])
-					dataTable = sqlManager._executeQueryBis(query)
+					dataTable = sqlManager._executeQuery(query)
 					try:
 						assert len(dataTable) == 0, "Linea: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
 					except Exception as e:
