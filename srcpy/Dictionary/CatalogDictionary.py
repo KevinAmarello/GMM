@@ -291,6 +291,16 @@ def getSelectSumaAseguradaDifferenceQueryByTable(table):
 		WHERE SUMA_ASEGURADA.DSELEMEN IS NULL
 		"""
 		return query.format(table = table)
+	elif table in ["KACTPAT"]:
+		logging.debug("This table has IMSANAC and IMSAEXT")
+		query = """\
+		SELECT {table}.*
+		FROM SUMA_ASEGURADA RIGHT JOIN {table}
+		ON SUMA_ASEGURADA.DSELEMEN = {table}.IMSANAC 
+		AND SUMA_ASEGURADA.DSELEMEN = {table}.IMSAEXT 
+		WHERE SUMA_ASEGURADA.DSELEMEN IS NULL
+		"""
+		return query.format(table = table)
 # END [getSelectSumaAseguradaDifferenceQueryByTable]
 
 
