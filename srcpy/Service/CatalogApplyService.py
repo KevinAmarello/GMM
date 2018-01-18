@@ -62,7 +62,7 @@ def backgroundApply(url):
 
 		# Instanciates SQLManager
 		sqlManager = SQLManagerClass()
-
+		checkValidity(catalogManager)
 		createDatabase(catalogManager, sqlManager)
 		checkValues(sqlManager)
 		updateValues(sqlManager)
@@ -73,11 +73,33 @@ def backgroundApply(url):
 	except Exception as e:
 		StorageManager.writeResultInHistoric(url, "Fracaso")
 	finally:
+		sqlManager._closeConnection()
 		q = taskqueue.Queue('default')
 		q.purge()
-		sqlManager._closeConnection()
 		return Response("Process done", status = 200)
 # END [backgroundApply]
+
+
+
+def checkValidity(catalogManager):
+	logging.debug("CatalogApplyService: checkValidity")
+	try:
+		for sheet in ["VERSION", "DEDUCIBLE", "SUMA ASEGURADA"]:
+			logging.debug("Loop in " + sheet)
+			col = 0
+			if sheet == "VERSION":
+				col = 6
+			else:
+				col = 3
+			s = catalogManager._getSheetByName(sheet)
+			for i in range(1, s.max_row + 1):
+				if s.cell(row = i, column = col).value is None:
+					Notifier.notifByMail("AC", False, "Hoja {0} no tiene todas sus celdas de nueva version llenas.".format(sheet))
+					raise Exception
+	except Exception as e:
+		logging.debug(str(e))
+		raise e
+
 
 
 # START [createDatabase]
