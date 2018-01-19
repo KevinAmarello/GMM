@@ -102,7 +102,7 @@ def deleteFile(urlOnStorage):
 # Renames the file
 def renameFileYear(filename, boolPlusOne = True):
 	filename = secure_filename(filename)
-	date = datetime.datetime.utcnow().strftime("%Y")
+	date = datetime.datetime.now().strftime("%Y")
 	if boolPlusOne:
 		date = str(int(date)+1)
 	basename, extension = filename.rsplit('.', 1)
@@ -114,7 +114,7 @@ def renameFileYear(filename, boolPlusOne = True):
 # Renames the file including complete date
 def renameFileHourDayMonth(filename):
 	filename = secure_filename(filename)
-	date = datetime.datetime.utcnow().strftime("%H:%M:%S_%d-%m")
+	date = datetime.datetime.now().strftime("%H:%M:%S_%d-%m")
 	basename, extension = filename.rsplit('.', 1)
 	return "{0}-{1}.{2}".format(basename, date, extension)
 # END [renameFileDayMonthYear]
@@ -165,7 +165,7 @@ def writeEntryInHistoric(fileName):
 	logging.debug("File created")
 	# Write
 	try:
-		content = content + "{0} {1} \n".format(fileName, datetime.datetime.utcnow().strftime("%d-%m-%Y"))
+		content = content + "{0} {1} \n".format(fileName, datetime.datetime.now().strftime("%d-%m-%Y"))
 		fileStream.write(content)
 		logging.debug(content)
 	except Exception as e:
