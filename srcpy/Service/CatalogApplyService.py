@@ -423,6 +423,7 @@ def updateValues(sqlManager):
 
 		logging.debug("CatalogApplyService updateValues")
 		# We start TRANSACTION so we can cancel changes if something goes wrong
+		sqlManager._executeQuery("SET autocommit = 0")
 		sqlManager._executeQuery("START TRANSACTION")
 		for sheetName in ["VERSION", "DEDUCIBLE", "SUMA_ASEGURADA"]:
 			logging.debug("Loop in catalog " + sheetName)

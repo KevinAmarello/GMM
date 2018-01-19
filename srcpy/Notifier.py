@@ -58,6 +58,14 @@ def notifByMail(operation, success, info = None):
 		
 	logging.debug("Info: " + str(info))
 
+	if operation == "RC":
+		payload['subject'] = "Resultado de la subida de cifras de control."
+		if success:
+			payload['body'] = "Se han recibido exitosamente las cifras de control."
+		else:
+			payload['body'] = "Un error ocurrio en el proceso de ingreso de cifras de control:<br> {0}. Favor de reintentar.".format(info)
+
+
 	if operation == "FES":
 		payload['subject'] = "Resultado de la exportacion final de archivos."
 		if success:
@@ -105,7 +113,7 @@ def prepareBody(info):
 	
 	for k in info.keys():
 		for v in info[k]:
-			infoTemp += v + " en tabla " + k +"<br>"
+			infoTemp += v.replace("],", "],<br>") + " en tabla " + k +"<br>"
 	return infoTemp
 # END [prepareBody]
 

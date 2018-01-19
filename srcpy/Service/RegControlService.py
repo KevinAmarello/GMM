@@ -2,6 +2,7 @@ import logging
 from flask import Response
 
 from srcpy.Manager.SQLManager import SQLManagerClass
+import srcpy.Notifier as Notifier
 
 # START [isThereControlCifrasTableinDatabase]
 def isThereControlCifrasTableinDatabase():
@@ -44,17 +45,14 @@ def uploadControlCifras(request):
 
 		for table in json.keys():
 			query = sqlManager._getInsertIntoCCQuery("\"" + str(table) + "\"", json[table])
-			logging.debug(str(query))
-
 			sqlManager._executeQuery(query)
 
-
-		fl = sqlManager._executeQuery("SELECT * FROM CONTROL_CIFRAS")
-		logging.debug(str(fl))
-
-		sqlManager._closeConnection()
+		Notifier.notifByMail("RC", True)
 		return Response("El control de cifras ha sido tomado en cuenta.", status = 200)
 	except Exception as e:
 		logging.debug(str(e))
+		Notifier.notifByMail("RC", False, str(e))
 		return Response(str(e), status = 500)
+	finally:	
+		sqlManager._closeConnection()
 # END [uploadControlCifras]
