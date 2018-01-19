@@ -33,7 +33,6 @@ def notifByMail(operation, success, info = None):
 	contactFile = StorageManager.openFile(urlContact, 'r')
 	contactList = []
 	logging.debug("Contact file opened")
-	logging.debug("Info: " + str(info))
 
 	for line in contactFile:
 		mail = line.rsplit()[0]
@@ -43,20 +42,14 @@ def notifByMail(operation, success, info = None):
 	payload = {}
 	payload['to'] = contactList
 
-	if operation == "DV": 
+	if operation in ["DV", "AC"]: 
 		if info is not None:
 			if type(info) is defaultdict:
-				info = prepareBodyDV(info)
+				info = prepareBody(info)
 			else:
 				info = info.replace("\"", "").replace("\'", "")
 				info += "<br>"	
-	elif operation == "AC":
-		if info is not None:
-			if type(info) is list:
-				info = prepareBodyAC(info)
-			else:
-				info = info.replace("\"", "").replace("\'", "")
-				info += "<br>"	
+
 	else:
 		# Clean body
 		if info is not None:
@@ -94,8 +87,8 @@ def notifByMail(operation, success, info = None):
 # END [notifByMail]
 
 
-# START [prepareBodyDV]
-def prepareBodyDV(info):
+# START [prepareBody]
+def prepareBody(info):
 	"""
 		In the case of the validation Data, info is a dictionary
 		sheetName : [Errors]
@@ -111,20 +104,8 @@ def prepareBodyDV(info):
 	infoTemp = "" 
 	
 	for k in info.keys():
-		logging.debug("Table " + k)
 		for v in info[k]:
-			logging.debug("Error " + v)
 			infoTemp += v + " en tabla " + k +"<br>"
 	return infoTemp
-# END [prepareBodyDV]
+# END [prepareBody]
 
-
-# START [prepareBodyAC]
-def prepareBodyAC(info):
-	logging.debug("Entry prepareBody")
-	infoTemp = "" 
-
-	for err in info:
-		infoTemp += err +"<br>"
-	return infoTemp
-# END [prepareBodyAC]

@@ -108,19 +108,22 @@ def checkValidity(catalogManager):
 					if not isLastLineLittle([s.cell(row = i, column = x) for x in range(1,4)]):
 						# Check there is value
 						if s.cell(row = i, column = col).value is None:
-							listError.append("Hoja {0} no tiene todas sus celdas de nueva version llenas.".format(sheet))
+							listError.append((sheet, "Celdas de nueva version vacias"))
 							break
 					else:
 						break
 			except Exception as e:
 				logging.debug(str(e))
-				listError.append(str(e))				
+				listError.append((sheet, str(e)))				
 				continue
 
-		if len(listError) != 0:
+		d = defaultdict(list)
+		for k,v in listError:
+			d[k].append(v)
+
+		if len(d) != 0:
 			logging.debug("Errors found")
-			logging.debug(str(listError))
-			Notifier.notifByMail("AC", False, listError)
+			Notifier.notifByMail("AC", False, d)
 			raise Exception
 
 		logging.debug("No errors found")
@@ -189,12 +192,16 @@ def createDatabase(catalogManager, sqlManager):
 						continue
 				except Exception as ex:
 					logging.debug("Exception: " + str(ex))
-					listError.append(str(ex).replace("\"", "").replace("\'", ""))
+					listError.append((sheetName, str(ex).replace("\"", "").replace("\'", "")))
 					continue
 
-		if len(listError) != 0:
+		d = defaultdict(list)
+		for k,v in listError:
+			d[k].append(v)
+
+		if len(d) != 0:
 			logging.debug("Errors found")
-			Notifier.notifByMail("AC", False, listError)
+			Notifier.notifByMail("AC", False, d)
 			raise Exception
 
 		logging.debug("No errors found")
@@ -274,10 +281,10 @@ def checkValues(sqlManager):
 							dataTable = sqlManager._executeQuery(query)
 
 							try:
-								assert len(dataTable) == 0, "Valor de {0}: {1} de la tabla {2} no es permitida por el catalogo {3}.".format(colTable, dataTable, table[0], catalogName)
+								assert len(dataTable) == 0, "Valor de {0}: {1} no es permitida por el catalogo {2} ".format(colTable, dataTable, catalogName)
 							except Exception as e:
 								logging.debug(str(e))
-								listError.append(str(e).replace("\"", "").replace("\'", ""))
+								listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
 
 						else:
 							continue
@@ -289,10 +296,10 @@ def checkValues(sqlManager):
 					query = CatalogDictionary.getSelectDifferenceQueryByCatalogAndTable(catalogName, table[0])
 					dataTable = sqlManager._executeQuery(query)
 					try:
-						assert len(dataTable) == 0, "Linea: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
+						assert len(dataTable) == 0, "Linea: {0} no es permitida por el catalogo {1} ".format(dataTable, catalogName)
 					except Exception as e:
 						logging.debug("AssertionError " + str(e))
-						listError.append(str(e).replace("\"", "").replace("\'", ""))
+						listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
 				# SUMA SEGURADA must have a double check too
 				elif catalogName == "SUMA_ASEGURADA":
 					###########
@@ -307,10 +314,10 @@ def checkValues(sqlManager):
 						dataTable = sqlManager._executeQuery(query)
 
 						try:
-							assert len(dataTable) == 0, "Valor de CPASLINN: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
+							assert len(dataTable) == 0, "Valor de CPASLINN: {0} no es permitida por el catalogo {1} ".format(dataTable,catalogName)
 						except Exception as e:
 							logging.debug(str(e))
-							listError.append(str(e).replace("\"", "").replace("\'", ""))
+							listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
 
 						query = """ 
 						SELECT DISTINCT CPASLINI FROM {table} WHERE CPASLINI NOT IN (SELECT DISTINCT DSELEMEN FROM SUMA_ASEGURADA)
@@ -318,10 +325,10 @@ def checkValues(sqlManager):
 						dataTable = sqlManager._executeQuery(query)
 
 						try:
-							assert len(dataTable) == 0, "Valor de CPASLINI: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
+							assert len(dataTable) == 0, "Valor de CPASLINI: {0} no es permitida por el catalogo {1} ".format(dataTable, catalogName)
 						except Exception as e:
 							logging.debug(str(e))
-							listError.append(str(e).replace("\"", "").replace("\'", ""))
+							listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
 
 					else:
 						for column in listColumn:
@@ -348,10 +355,10 @@ def checkValues(sqlManager):
 								dataTable = sqlManager._executeQuery(query)
 
 								try:
-									assert len(dataTable) == 0, "Valor de {0}: {1} de la tabla {2} no es permitida por el catalogo {3}.".format(colTable, dataTable, table[0], catalogName)
+									assert len(dataTable) == 0, "Valor de {0}: {1} no es permitida por el catalogo {2} ".format(colTable, dataTable, catalogName)
 								except Exception as e:
 									logging.debug(str(e))
-									listError.append(str(e).replace("\"", "").replace("\'", ""))
+									listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
 					###########################
 					# Horizontal control
 					# Select lines from the table and check that they are included in the catalog
@@ -359,10 +366,10 @@ def checkValues(sqlManager):
 					query = CatalogDictionary.getSelectDifferenceQueryByCatalogAndTable(catalogName, table[0])
 					dataTable = sqlManager._executeQuery(query)
 					try:
-						assert len(dataTable) == 0, "Linea: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
+						assert len(dataTable) == 0, "Linea: {0} no es permitida por el catalogo {1} ".format(dataTable, catalogName)
 					except Exception as e:
 						logging.debug("AssertionError " + str(e))
-						listError.append(str(e).replace("\"", "").replace("\'", ""))
+						listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
 				# Other Catalogs are basically the control of a single column
 				else:
 					###########################
@@ -372,14 +379,18 @@ def checkValues(sqlManager):
 					query = CatalogDictionary.getSelectDifferenceQueryByCatalogAndTable(catalogName, table[0])
 					dataTable = sqlManager._executeQuery(query)
 					try:
-						assert len(dataTable) == 0, "Linea: {0} de la tabla {1} no es permitida por el catalogo {2}.".format(dataTable, table[0], catalogName)
+						assert len(dataTable) == 0, "Linea: {0} no es permitida por el catalogo {1} ".format(dataTable, catalogName)
 					except Exception as e:
 						logging.debug("AssertionError " + str(e))
-						listError.append(str(e).replace("\"", "").replace("\'", ""))
+						listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
 
-		if len(listError) != 0:
+		d = defaultdict(list)
+		for k,v in listError:
+			d[k].append(v)
+
+		if len(d) != 0:
 			logging.debug("Errors found.")
-			Notifier.notifByMail("AC", False, listError)
+			Notifier.notifByMail("AC", False, d)
 			raise EndException
 
 	except EndException as ee:
@@ -436,7 +447,7 @@ def updateValues(sqlManager):
 									sqlManager._executeQuery(query)	
 								except Exception as e:
 									logging.debug("Exception " + str(e))
-									listError.append(str(e).replace("\"", "").replace("\'", ""))
+									listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
 									continue
 						else: 
 							continue
@@ -458,7 +469,7 @@ def updateValues(sqlManager):
 								sqlManager._executeQuery(query)	
 							except Exception as e:
 								logging.debug("Exception " + str(e))
-								listError.append(str(e).replace("\"", "").replace("\'", ""))
+								listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
 								continue			
 			else:
 				versionData = sqlManager._executeQuery("SELECT * FROM VERSION")
@@ -470,14 +481,18 @@ def updateValues(sqlManager):
 						sqlManager._executeQuery(query)	
 					except Exception as e:
 						logging.debug("Exception " + str(e))
-						listError.append(str(e).replace("\"", "").replace("\'", ""))
+						listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
 						continue
 
-		if len(listError) != 0:
+		d = defaultdict(list)
+		for k,v in listError:
+			d[k].append(v)
+
+		if len(d) != 0:
 			logging.debug("Errors found.")
 			# Cancel changes
 			sqlManager._executeQuery("ROLLBACK")
-			Notifier.notifByMail("AC", False, listError)
+			Notifier.notifByMail("AC", False, d)
 			raise EndException
 
 		logging.debug("No errors found.")
