@@ -314,7 +314,7 @@ def checkLines_Condition(table , column, sqlManager, listError):
 	# Check value of these lines, assert these are the conditioned comodin value
 	for result in resultSet:
 		try:
-			assert str(result[0]) == ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column), "Valor de comodin incorecta. Checar condiciones. Comodin: {1} - Valor: {2}".format(table, column, str(result[0]))
+			assert str(result[0]) == ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column), "Valor de comodin incorecta. Checar condiciones. Comodin: {0} - Valor: {1}".format(table, column, str(result[0]))
 		except Exception as ex:
 			logging.debug("Exception: " + str(ex))
 			listError.append((table, str(ex).replace("\"", "").replace("\'", "")))
@@ -373,10 +373,11 @@ def checkDataDependingOnDefaultComodinValue(table, column, resultSet, listError,
 		for line in resultSet:
 			try:
 				if isInteger:
-					assert is_integer(line[0]) or str(line[0]) == ComodinDictionary.getDefaultComodinValueByTableAndComodin(table, column), "Valor de comodin incorecta. Esperado Integer o Comodin por defecto. Comodin: {1} - Valor: {2}".format(column, str(line[0]))
+					assert is_integer(line[0]) or str(line[0]) == ComodinDictionary.getDefaultComodinValueByTableAndComodin(table, column), "Valor de comodin incorecta. Esperado Integer o Comodin por defecto. Comodin: {0} - Valor: {1}".format(column, str(line[0]))
 				else:
-					assert is_decimal(line[0]) or str(line[0]) == ComodinDictionary.getDefaultComodinValueByTableAndComodin(table, column), "Valor de comodin incorecta. Esperado Decimal o Comodin por defecto. Comodin: {1} - Valor: {2}".format(column, str(line[0]))
+					assert is_decimal(line[0]) or str(line[0]) == ComodinDictionary.getDefaultComodinValueByTableAndComodin(table, column), "Valor de comodin incorecta. Esperado Decimal o Comodin por defecto. Comodin: {0} - Valor: {1}".format(column, str(line[0]))
 			except Exception as ex:
+				logging.debug("Exception: " + str(ex))
 				listError.append((table, str(ex).replace("\"", "").replace("\'", "")))
 				continue
 	# If the column may not have a default comodin value ...
@@ -386,10 +387,11 @@ def checkDataDependingOnDefaultComodinValue(table, column, resultSet, listError,
 		for line in resultSet:
 			try:
 				if isInteger:
-					assert is_integer(line[0]), "Valor de comodin incorecta. Esperado Integer. Comodin: {1} - Valor: {2}".format(column, str(line[0]))
+					assert is_integer(line[0]), "Valor de comodin incorecta. Esperado Integer. Comodin: {0} - Valor: {1}".format(column, str(line[0]))
 				else:
-					assert is_decimal(line[0]), "Valor de comodin incorecta. Esperado Decimal. Comodin: {1} - Valor: {2}".format(column, str(line[0]))
+					assert is_decimal(line[0]), "Valor de comodin incorecta. Esperado Decimal. Comodin: {0} - Valor: {1}".format(column, str(line[0]))
 			except Exception as ex:
+				logging.debug("Exception: " + str(ex))
 				listError.append((table, str(ex).replace("\"", "").replace("\'", "")))
 				continue
 	return listError
