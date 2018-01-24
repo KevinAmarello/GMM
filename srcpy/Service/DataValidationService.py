@@ -314,7 +314,7 @@ def checkLines_Condition(table , column, sqlManager, listError):
 	# Check value of these lines, assert these are the conditioned comodin value
 	for result in resultSet:
 		try:
-			assert str(result[0]) == ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column), "Valor de comodin incorecta. Checar condiciones. Comodin: {0} - Valor: {1}".format(table, column, str(result[0]))
+			assert str(result[0]) == ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column), "Valor de comodin incorecta. Checar condiciones. Comodin: {0} - Valor: {1}".format(column, str(result[0]))
 		except Exception as ex:
 			logging.debug("Exception: " + str(ex))
 			listError.append((table, str(ex).replace("\"", "").replace("\'", "")))
