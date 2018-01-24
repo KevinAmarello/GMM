@@ -40,6 +40,9 @@ angular.module('gmmApp')
         //console.log(fd.file)
         return Restangular.one('uploadCatalog').withHttpConfig({transformRequest: angular.identity})
         .customPOST(fd, '', undefined, {'Content-Type': undefined})
+      },
+      descargaTablas: function() {
+        return Restangular.one('exportFiles').withHttpConfig({timeout: 60000}).get();
       }
 
     };

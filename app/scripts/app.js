@@ -69,5 +69,14 @@ angular
           controller: 'CatalogoCtrl'
         }
       }
-    });
+    })
+    .state('main.descargaTablas', {
+      url:'descargaTablas',
+      views: {
+        'main@main': {
+          templateUrl: 'views/descargatablas.html',
+          controller: 'DescargatablasCtrl'
+        }
+      }
+      });
   });

@@ -19,6 +19,9 @@ angular.module('gmmApp')
     			break;
     		case 3:
     			$state.go('main.catalogos');
+                break;
+            case 4: 
+                $state.go('main.descargaTablas');
     			break;
     	}
     }
