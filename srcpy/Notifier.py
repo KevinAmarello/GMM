@@ -9,7 +9,7 @@ from collections import defaultdict
 
 
 # START [notifByMail]
-def notifByMail(operation, success, info = None):
+def notifByMail(operation, success, info = None, listScriptURL = None):
 	logging.debug("Entry notifByMail")
 	"""
 		Sends a mail to each person listed in the contact file on Storage.
@@ -27,6 +27,7 @@ def notifByMail(operation, success, info = None):
     		"subject": "<SUBJECT>"
 		}
 	"""
+	temp = "" 
 
 	# Get contact list
 	urlContact = config.BUCKET_CONTACT_NAME + config.CONTACT_FILE
@@ -50,10 +51,20 @@ def notifByMail(operation, success, info = None):
 				info = info.replace("\"", "").replace("\'", "")
 				info += "<br>"	
 
+	elif operation in ["FES"]:
+		if info is not None:
+			info = info.replace("\"", "").replace("\'", "")
+			info += "<br>"	
+		if type(listScriptURL) is defaultdict:
+			for k in listScriptURL.keys():
+				logging.debug("Key: {0} / Value: {1}".format(k, listScriptURL[k]))
+				temp += "<a href=\"{0}\">Descargar el script {1}</a><br>".format(listScriptURL[k][0] , k)
+
 	else:
 		# Clean body
 		if info is not None:
 			info = info.replace("\"", "").replace("\'", "")
+
 
 		
 	logging.debug("Info: " + str(info))
@@ -70,7 +81,7 @@ def notifByMail(operation, success, info = None):
 		payload['subject'] = "Resultado de la exportacion final de archivos."
 		if success:
 			##################### INSERT HTML FORMAT TO REDUCE LINK LENGTH ####################################
-			payload['body'] = "El proceso de exportacion sucedio exitosamente. <a href=\"{0}\">Descargar el archivo Excel</a>{0}. Esta disponible solo una hora".format(info)
+			payload['body'] = "El proceso de exportacion sucedio exitosamente. <a href=\"{0}\">Descargar el archivo Excel</a>.<br>{1}Esta disponible solo una hora".format(info, temp)
 		else:
 			payload['body'] = "Un error ocurrio en el proceso de exportacion:<br> {0}. Favor de reintentar.".format(info)
 
