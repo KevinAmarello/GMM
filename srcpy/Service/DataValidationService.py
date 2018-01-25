@@ -61,7 +61,7 @@ def backgroundValidation(url):
 		pbaManager = ExcelManagerClass(pbaFile, True)
 		
 		createDatabase(pbaManager)
-		registryControl()
+		#registryControl()
 		checkComodin()
 		StorageManager.writeResultInHistoric(url, "Exito")
 		Notifier.notifByMail("DV", True)
@@ -199,17 +199,17 @@ def checkComodin():
 		For each table with comodin:
 			For each comodin in table:
 				If it is conditioned_comodin_column:
-					Get lines filling conditions
-					Assert Value = conditioned_comodin_column
+					Get lines with conditioned_comodin_value
+					Assert conditions respected
 
-					Get line non filling conditions 
+					Get line without conditioned_comodin_value 
 					If Integer expected:
-						If it is default_comodin_value:
+						If it is default_comodin_colummn:
 							Assert Value is Integer or default_comodin_value
 						If not:
 							Assert Value is Integer
 					If Decimal expected
-						If it is default_comodin_value:
+						If it is default_comodin_column:
 							Assert Value is Decimal or default_comodin_value
 						If not:
 							Assert Value is Decimal
@@ -254,7 +254,7 @@ def checkComodin():
 				# If the column may present a conditioned comodine value ...
 				if ComodinDictionary.getConditionedComodinColumnByTable(table) is not None and column in ComodinDictionary.getConditionedComodinColumnByTable(table):
 					logging.debug("This column may present a conditioned comodine value")
-					# ... check lines filling and non-filling conditions 
+					# ... check that if the comodin has its conditioned value, the conditions are respected
 					listError = checkLines_Condition(table , column, sqlManager, listError)
 				# If the column may not conditioned comodin value ...
 				else:
@@ -291,11 +291,11 @@ def checkComodin():
 # START [checkLines_Condition_OK]
 def checkLines_Condition(table , column, sqlManager, listError):
 	"""
-		Select all the lines in the table that fits with the condition
-		Assert that the value equals the conditioned comodin
+		Select all the lines in the table where comodin = conditioned_comodin_value
+		Assert that the conditions are respected
 
 		Then select the other lines and check they are integers or have 
-		a default value corresponding to the column type.
+		a default comdin value depending on the column type.
 
 		Input:
 			Sheet - Table name
@@ -305,27 +305,37 @@ def checkLines_Condition(table , column, sqlManager, listError):
 			AssertException - If control fails
 	"""
 	logging.debug("Checking values with Conditions OK")
-	# Get lines fitting with the conditions
+	# Get lines with Conditioned Comodin Value
 	queryCond = getComodinCondition_OK_Query(table , column, sqlManager)
-	
 	resultSet = sqlManager._executeQuery(queryCond)
 	
-
-	# Check value of these lines, assert these are the conditioned comodin value
+	# So we get the conditions colums, assert expexted values are respected
 	for result in resultSet:
-		try:
-			assert str(result[0]) == ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column), "Valor de comodin incorecta. Checar condiciones. Comodin: {0} - Valor: {1}".format(column, str(result[0]))
-		except Exception as ex:
-			logging.debug("Exception: " + str(ex))
-			listError.append((table, str(ex).replace("\"", "").replace("\'", "")))
-			continue	
+		# If two conditions
+		if len(result) == 2:
+			# [CDPRODCO, CDPLAN]
+			try:
+				assert str(result[0]) in ComodinDictionary.getConditionValueByTableAndColumn(table, "CDPRODCO") and str(result[1]) in ComodinDictionary.getConditionValueByTableAndColumn(table, "CDPLAN"), "Valor de comodin incorecta. Checar condiciones. Comodin: {0} - Valor: {1}".format(column, ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column))
+			except Exception as ex:
+				logging.debug("Exception: " + str(ex))
+				listError.append((table, str(ex).replace("\"", "").replace("\'", "")))
+				continue
 
-	# Get lines not fitting with the conditions
+		# If simple condition, [CDPRODCO]
+		else:
+			try:
+				assert str(result[0]) in ComodinDictionary.getConditionValueByTableAndColumn(table, "CDPRODCO"), "Valor de comodin incorecta. Checar condiciones. Comodin: {0} - Valor: {1}".format(column, ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column))
+			except Exception as ex:
+				logging.debug("Exception: " + str(ex))
+				listError.append((table, str(ex).replace("\"", "").replace("\'", "")))
+				continue
+
+
+	# Get lines where no Conditioned Comodin Value
 	logging.debug("Checking values with Conditions NOK")
-	queryBis = getComodinCondition_NOK_Query(table, column, queryCond)
-	resultSet = sqlManager._executeQuery(queryCond)
+	queryBis = getComodinCondition_NOK_Query(table, column)
+	resultSet = sqlManager._executeQuery(queryBis)
 	
-
 	# Check the numeric data
 	listError = checkDataDependingOnColumntypes(table, column, resultSet, listError)
 	# Check the alphanumeric data
@@ -401,7 +411,7 @@ def checkDataDependingOnDefaultComodinValue(table, column, resultSet, listError,
 # START [getComodinCondition_OK_Query]
 def getComodinCondition_OK_Query(table , column, sqlManager):
 	"""
-		Returns the Query to select lines that fit with conditions
+		Returns the Query to select lines that fit with conditioned comodin value
 
 		Input:
 			Table - Table Name
@@ -411,30 +421,25 @@ def getComodinCondition_OK_Query(table , column, sqlManager):
 			Query
 	"""
 	conditions = ComodinDictionary.getConditionColumnByTable(table)
-	cN = []
-	cV = []
-	for c in conditions:
-		cN.append(c)
-		cV.append(ComodinDictionary.getConditionValueByTableAndColumn(table, c))
-	return sqlManager.getSelectComodinQuery(table, column, cN, cV)
+	conditionedComodinValue = ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column)
+	return sqlManager.getSelectConditionedComodinQuery(table, column, conditionedComodinValue, conditions)
 # END [getComodinCondition_OK_Query]
 
 
 # START [getComodinCondition_NOK_Query]
-def getComodinCondition_NOK_Query(table, column, queryConditionOK):
+def getComodinCondition_NOK_Query(table, column):
 	"""
-		Return the column without lines contained in parameters
+		Return the query to select lines where conditioned comodin hasnt its conditioned value
 
 		Input:
 			Table - Table name
 			Column - Column Name
-			QueryConditionOK - Query to substract
 
 		Output:
 			Query 
 	"""
-	logging.debug("SELECT DISTINCT {0} FROM {1} WHERE {0} NOT IN ({2})".format(column, table, queryConditionOK))
-	return "SELECT DISTINCT {0} FROM {1} WHERE {0} NOT IN ({2})".format(column, table, queryConditionOK)
+	conditionedComodinValue = ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column)
+	return "SELECT DISTINCT {comodin} FROM {table} WHERE {comodin} != \'{condValue}\'".format(comodin = column, table = table, condValue = conditionedComodinValue) 
 # END [getComodinCondition_NOK_Query]
 
 #########################  UTILS  ##############################

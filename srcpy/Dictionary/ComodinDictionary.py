@@ -148,7 +148,7 @@ def getConditionValueByTableAndColumn(table, cond):
 		("KTPTCOT", "CDPLAN"): (20,21,22,23,24),
 		("KTPTCPT", "CDPRODCO"): (1,4),
 		("KTPTDOT", "CDPRODCO"): (1,4),
-		("KTPTDJT", "CDPRODCO"): (7,-10) # -10: Mock value to have a tuple and fit with the SQLQuery prototype
+		("KTPTDJT", "CDPRODCO"): (7)
 	}
 	return switcher.get((table, cond))
 # END [getConditionValueByTableAndColumn]

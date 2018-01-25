@@ -125,18 +125,14 @@ class SQLManagerClass:
 	# END [_getInsertIntoCCQuery]
 
 
-	# START [getSelectComodinQuery]
+	# START [getSelectConditionedComodinQuery]
 	# Returns the query to insert data into the table
-	def getSelectComodinQuery(self, tableName, comodinName, conditionNames, conditionValues):
-		logging.debug("cN: "+ str(conditionNames) + " - cV: " + str(conditionValues))
+	def getSelectConditionedComodinQuery(self, tableName, comodinName, value, conditionNames):
 		if len(conditionNames) == 2:
-			return "SELECT DISTINCT {com} FROM {t} WHERE {cN[0]} IN {cV[0]} AND {cN[1]} IN {cV[1]}".format(com = comodinName, t = tableName, cN = conditionNames, cV = conditionValues)
+			return "SELECT DISTINCT {cond[0]}, {cond[1]} FROM {table} WHERE {comodinColumn} = \'{conditionedValue}\'".format(cond = conditionNames, comodinColumn = comodinName, table = tableName, conditionedValue = value)
 		else:
-			#if(len(conditionValues) == 1):
-			#	return "SELECT {com} FROM {t} WHERE {cN[0]} = {cV[0]}".format(com = comodinName, t = tableName, cN = conditionNames, cV = conditionValues)
-			#else:
-			return "SELECT DISTINCT {com} FROM {t} WHERE {cN[0]} IN {cV[0]}".format(com = comodinName, t = tableName, cN = conditionNames, cV = conditionValues)
-	# END [getSelectComodinQuery]
+			return "SELECT DISTINCT {cond[0]} FROM {table} WHERE {comodinColumn} = \'{conditionedValue}\'".format(cond = conditionNames, comodinColumn = comodinName, table = tableName, conditionedValue = value)
+	# END [getSelectConditionedComodinQuery]
 
 
 	# START [_closeConnection]
