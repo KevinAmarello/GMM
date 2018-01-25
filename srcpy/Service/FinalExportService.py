@@ -82,7 +82,7 @@ def backgroundExport():
 					excelColCount = 1
 
 					# Prepare SCRIPT INFO line
-					lineInfo += prepareINFOLine(line, name[0])
+					lineInfo = prepareINFOLine(line, name[0])
 					
 					# For each cell
 					for cell in line:
@@ -90,8 +90,8 @@ def backgroundExport():
 						# Write data into Excel sheet
 						ExcelManager.setCell(sheet, cursor, excelColCount, str(cell))
 					cursor += 1
-				# Write INFO
-				fileStorage.write(lineInfo)
+					# Write INFO
+					fileStorage.write(lineInfo)
 				fileStorage.close()
 				# Generate file's signed url and add it to the list
 				scriptSignedURL = StorageManager.generateSignedURL(SCRIPT_ID, nameScript = name[0] + ".txt")

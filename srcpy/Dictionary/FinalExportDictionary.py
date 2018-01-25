@@ -33,4 +33,4 @@ def commonDataEndLine():
 	empusu = "0001"
 	prog = "KTCLMMGE"
 	date = datetime.datetime.now().strftime("%Y-%m-%d-%H.%M.%S.%f")
-	return usuario + empusu + prog + str(date) + "\n"
+	return usuario + empusu + prog + str(date) + "\r\n"
