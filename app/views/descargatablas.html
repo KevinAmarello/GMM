@@ -1,0 +1,30 @@
+<div class="container-fluid nopadding">
+	<div class="row">
+		<div class="container content">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 header-box">
+				<h3>Descargar Archivo</h3>
+			</div>
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" >
+				<div class="col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 col-xs-12 col-xs-offset-0"  ng-click="descargaTablas()" ng-hide="mensaje">
+					<div class="download-btn"><span class="glyphicon glyphicon-floppy-save"></span> DESCARGAR ARCHIVO</div>
+				</div>
+				<div ng-show="mensaje">
+					<div class="col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-6 col-sm-offset-3 col-xs-12 col-xs-offset-0 input-file">
+						<div class="form-group">
+							<label for="exampleInputFile"> En un momento le llegará un correo con el enlace para descargar el archivo</label>
+							
+						</div>
+					</div>	
+					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+						<div class="col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 col-xs-12 col-xs-offset-0 send-btn">
+							<button type="submit" ng-click="regresar()"> Regresar</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="loading-wrap" ng-show="loading">
+	<img src="/images/loading.gif" alt="">
+</div>
