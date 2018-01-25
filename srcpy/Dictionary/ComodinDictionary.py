@@ -142,13 +142,13 @@ def getConditionColumnByTable(table):
 # Return the value for each condition for each couple (table, conditionColumn)
 def getConditionValueByTableAndColumn(table, cond):
 	switcher = {
-		("KTPTCNT", "CDPRODCO"): (1,4),
-		("KTPTCNT", "CDPLAN"): (20,21,22,23,24,32),
-		("KTPTCOT", "CDPRODCO"): (1,4),
-		("KTPTCOT", "CDPLAN"): (20,21,22,23,24),
-		("KTPTCPT", "CDPRODCO"): (1,4),
-		("KTPTDOT", "CDPRODCO"): (1,4),
-		("KTPTDJT", "CDPRODCO"): (7)
+		("KTPTCNT", "CDPRODCO"): ['00001','00004'],
+		("KTPTCNT", "CDPLAN"): ['20','21','22','23','24','32'],
+		("KTPTCOT", "CDPRODCO"): ['00001','00004'],
+		("KTPTCOT", "CDPLAN"): ['20','21','22','23','24'],
+		("KTPTCPT", "CDPRODCO"): ['00001','00004'],
+		("KTPTDOT", "CDPRODCO"): ['00001','00004'],
+		("KTPTDJT", "CDPRODCO"): ['00001','00004']
 	}
 	return switcher.get((table, cond))
 # END [getConditionValueByTableAndColumn]

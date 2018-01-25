@@ -308,16 +308,17 @@ def checkLines_Condition(table , column, sqlManager, listError):
 	logging.debug("Checking values with Conditions OK")
 	# Get lines with Conditioned Comodin Value
 	queryCond = getComodinCondition_OK_Query(table , column, sqlManager)
+	logging.debug(queryCond)
 	resultSet = sqlManager._executeQuery(queryCond)
 	
 	# So we get the conditions colums, assert expexted values are respected
 	for result in resultSet:
 		# If two conditions
 		if len(result) == 2:
-			logging.debug("Only one condition")
+			logging.debug("Two conditions")
 			# [CDPRODCO, CDPLAN]
 			try:
-				assert str(result[0]) in ComodinDictionary.getConditionValueByTableAndColumn(table, "CDPRODCO") and str(result[1]) in ComodinDictionary.getConditionValueByTableAndColumn(table, "CDPLAN"), "Valor de comodin incorecta. Checar condiciones. Comodin: {0} - Valor: {1}".format(column, ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column))
+				assert str(result[0]) in ComodinDictionary.getConditionValueByTableAndColumn(table, "CDPRODCO") and str(result[1]) in ComodinDictionary.getConditionValueByTableAndColumn(table, "CDPLAN"), "Valor de comodin incorecta. Las condiciones no estan satisfechas. Comodin: {0} - Valor: {1}".format(column, ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column))
 			except Exception as ex:
 				logging.debug("Exception: " + str(ex))
 				listError.append((table, str(ex).replace("\"", "").replace("\'", "")))
@@ -325,9 +326,9 @@ def checkLines_Condition(table , column, sqlManager, listError):
 
 		# If simple condition, [CDPRODCO]
 		else:
-			logging.debug("Two conditions")
+			logging.debug("Only one condition")
 			try:
-				assert str(result[0]) in ComodinDictionary.getConditionValueByTableAndColumn(table, "CDPRODCO"), "Valor de comodin incorecta. Checar condiciones. Comodin: {0} - Valor: {1}".format(column, ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column))
+				assert str(result[0]) in ComodinDictionary.getConditionValueByTableAndColumn(table, "CDPRODCO"), "Valor de comodin incorecta. Las condiciones no estan satisfechas. Comodin: {0} - Valor: {1}".format(column, ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column))
 			except Exception as ex:
 				logging.debug("Exception: " + str(ex))
 				listError.append((table, str(ex).replace("\"", "").replace("\'", "")))
@@ -337,6 +338,7 @@ def checkLines_Condition(table , column, sqlManager, listError):
 	# Get lines where no Conditioned Comodin Value
 	logging.debug("Checking values with Conditions NOK")
 	queryBis = getComodinCondition_NOK_Query(table, column)
+	logging.debug(queryBis)
 	resultSet = sqlManager._executeQuery(queryBis)
 	
 	# Check the numeric data
