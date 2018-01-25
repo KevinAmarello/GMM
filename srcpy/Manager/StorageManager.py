@@ -114,7 +114,7 @@ def renameFileYear(filename, boolPlusOne = True):
 # Renames the file including complete date
 def renameFileHourDayMonth(filename):
 	filename = secure_filename(filename)
-	date = datetime.datetime.now().strftime("%H:%M:%S_%d-%m")
+	date = (datetime.datetime.now() - datetime.timedelta(hours = 6)).strftime("%H:%M:%S_%d-%m")
 	basename, extension = filename.rsplit('.', 1)
 	return "{0}-{1}.{2}".format(basename, date, extension)
 # END [renameFileDayMonthYear]
