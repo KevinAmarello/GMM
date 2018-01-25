@@ -13,7 +13,7 @@ BUCKET_HISTORIC_NAME = "/gnp-auttarifasgmm-qa.appspot.com/Historico/"
 HISTORIC_FILE = "Historico.txt"
 
 # Signed URL
-EXCEL_SIGNED_FILE = "Versiones_Finales/" + EXCEL_VF_FILE
+EXCEL_SIGNED_FILE = "Versiones_Finales/"
 BUCKET_VF_SIGNED_NAME = "gnp-auttarifasgmm-qa.appspot.com"
 SCRIPT_INFO = "Versiones_Finales/tmp/"
 

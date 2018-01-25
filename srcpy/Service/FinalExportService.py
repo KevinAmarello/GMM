@@ -102,11 +102,10 @@ def backgroundExport():
 			d[k].append(v)
 
 		# Save Excel to Storage
-		StorageManager.saveContentXLSToStorage(workbook)
-
+		filename = StorageManager.saveContentXLSToStorage(workbook)
 
 		# Generate signed URL to access file
-		excelSignedURL = StorageManager.generateSignedURL(EXCEL_FILE_ID)
+		excelSignedURL = StorageManager.generateSignedURL(EXCEL_FILE_ID, nameScript = filename)
 		# Notificate SUCCES
 		Notifier.notifByMail("FES", True, excelSignedURL, d)
 	except Exception as e:
@@ -121,8 +120,6 @@ def backgroundExport():
 def prepareINFOLine(dbLine, table):
 	tmp = ""
 	formatTable = FinalExportDictionary.getFormatByTable(table)
-	logging.debug("Line " + str(dbLine))
-	logging.debug("Format table" + str(formatTable))
 	count = 0
 	for cell in dbLine:
 		# Get cell's format

@@ -63,6 +63,8 @@ def saveContentXLSToStorage(wb):
 	xls = openFile(urlOnStorage, 'w', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 	xls.write(save_virtual_workbook(wb))
 	xls.close()
+
+	return fName
 # END [saveContentXLSToStorage]
 
 
@@ -123,13 +125,15 @@ def renameFileHourDayMonth(filename):
 # START [generateSignedURL]
 # Generate a signed URL to access the file
 def generateSignedURL(ID, expires_after_seconds = 3600, nameScript = None):
-   	logging.debug("Storage Manager Entry generateSignedURL")
+	logging.debug("Storage Manager Entry generateSignedURL")
 	client = storage.Client()
 	default_bucket = config.BUCKET_VF_SIGNED_NAME
 	bucket = client.get_bucket(default_bucket)
 	if ID == "XLS":
-		blob = storage.Blob(renameFileYear(config.EXCEL_SIGNED_FILE), bucket)
+		logging.debug(config.EXCEL_SIGNED_FILE + nameScript)
+		blob = storage.Blob(config.EXCEL_SIGNED_FILE + nameScript, bucket)
 	else:
+		logging.debug(config.EXCEL_SIGNED_FILE + nameScript)
 		blob = storage.Blob(config.SCRIPT_INFO + nameScript, bucket)
 	expiration_time = int(time.time() + expires_after_seconds)
 

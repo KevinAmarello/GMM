@@ -79,7 +79,6 @@ def notifByMail(operation, success, info = None, listScriptURL = None):
 	if operation == "FES":
 		payload['subject'] = "Resultado de la exportacion final de archivos."
 		if success:
-			##################### INSERT HTML FORMAT TO REDUCE LINK LENGTH ####################################
 			payload['body'] = "El proceso de exportacion sucedio exitosamente. <a href=\"{0}\">Descargar el archivo Excel</a><br>{1}Esta disponible solo una hora".format(info, temp)
 		else:
 			payload['body'] = "Un error ocurrio en el proceso de exportacion:<br> {0}. Favor de reintentar.".format(info)
