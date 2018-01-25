@@ -567,7 +567,7 @@ def getValueToIgnoreByTableAndComodin(table, com):
 		# REGION
 		("KTPTCNT", "CDREGGMM"): ("ZZZZZZZZ", "XXXXXXXX"),
 		("KTPTCOT", "CDREGGMM"): ("ZZZZZZZZ", "XXXXXXXX"),
-		("KTPTCPT", "CDREGGMM"): ("ZZZZZZZZ", "@@@@@"),
+		("KTPTCPT", "CDREGGMM"): ("ZZZZZZZZ", "XXXXXXXX"),
 		("KTPT6WT", "CDREGION"): ("ZZZZZZZZ", "@@@@@"),
 		("KTPTDOT", "CDREGION"): ("ZZZZZZZZ", "XXXXXXXX"),
 		("KTPT8AT", "CDREGION"): ("ZZZZZZZZ", "@@@@@"),

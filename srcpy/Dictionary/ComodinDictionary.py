@@ -112,7 +112,7 @@ def getConditionedComodinValueByTableAndComodin(table, comodin):
 		("KTPTCOT", "CDREGGMM"): "XXXXXXXX",
 		("KTPTCOT", "CDDEDUCI"): "XXXX",
 		("KTPTCPT", "CDPLAN"): "XXXXX",
-		("KTPTCPT", "CDREGGMM"): "ZZZZZZZZ",
+		("KTPTCPT", "CDREGGMM"): "XXXXXXXX",
 		("KTPTCPT", "CDDEDUCI"): "XXXX",
 		("KTPTDOT", "CDPLAN"): "XXXXX",
 		("KTPTDOT", "CDREGION"): "XXXXXXXX",
