@@ -54,7 +54,6 @@ def notifByMail(operation, success, info = None, listScriptURL = None):
 	elif operation in ["FES"]:
 		if info is not None:
 			info = info.replace("\"", "").replace("\'", "")
-			info += "<br>"	
 		if type(listScriptURL) is defaultdict:
 			for k in listScriptURL.keys():
 				logging.debug("Key: {0} / Value: {1}".format(k, listScriptURL[k]))

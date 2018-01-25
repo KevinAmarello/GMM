@@ -194,7 +194,8 @@ def createDatabase(catalogManager, sqlManager):
 					logging.debug("Exception: " + str(ex))
 					listError.append((sheetName, str(ex).replace("\"", "").replace("\'", "")))
 					continue
-
+		
+		sqlManager._executeQuery("COMMIT")
 		d = defaultdict(list)
 		for k,v in listError:
 			d[k].append(v)

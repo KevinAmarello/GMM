@@ -61,7 +61,7 @@ def backgroundValidation(url):
 		pbaManager = ExcelManagerClass(pbaFile, True)
 		
 		createDatabase(pbaManager)
-		#registryControl()
+		registryControl()
 		checkComodin()
 		StorageManager.writeResultInHistoric(url, "Exito")
 		Notifier.notifByMail("DV", True)
@@ -185,6 +185,7 @@ def createDatabase(excelManager):
 			Notifier.notifByMail("DV", False, d)
 			raise Exception
 
+		sqlManager._executeQuery("COMMIT")
 	except Exception as e:
 		raise e
 	finally:
@@ -313,6 +314,7 @@ def checkLines_Condition(table , column, sqlManager, listError):
 	for result in resultSet:
 		# If two conditions
 		if len(result) == 2:
+			logging.debug("Only one condition")
 			# [CDPRODCO, CDPLAN]
 			try:
 				assert str(result[0]) in ComodinDictionary.getConditionValueByTableAndColumn(table, "CDPRODCO") and str(result[1]) in ComodinDictionary.getConditionValueByTableAndColumn(table, "CDPLAN"), "Valor de comodin incorecta. Checar condiciones. Comodin: {0} - Valor: {1}".format(column, ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column))
@@ -323,6 +325,7 @@ def checkLines_Condition(table , column, sqlManager, listError):
 
 		# If simple condition, [CDPRODCO]
 		else:
+			logging.debug("Two conditions")
 			try:
 				assert str(result[0]) in ComodinDictionary.getConditionValueByTableAndColumn(table, "CDPRODCO"), "Valor de comodin incorecta. Checar condiciones. Comodin: {0} - Valor: {1}".format(column, ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column))
 			except Exception as ex:

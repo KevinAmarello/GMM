@@ -44,9 +44,12 @@ def uploadControlCifras(request):
 		json = request.get_json()
 
 		for table in json.keys():
-			query = sqlManager._getInsertIntoCCQuery("\"" + str(table) + "\"", json[table])
+			query = sqlManager._getInsertIntoCCQuery("\'" + str(table) + "\'", json[table])
+			logging.debug(query)
 			sqlManager._executeQuery(query)
 
+
+		sqlManager._executeQuery("COMMIT")
 		Notifier.notifByMail("RC", True)
 		return Response("El control de cifras ha sido tomado en cuenta.", status = 200)
 	except Exception as e:
