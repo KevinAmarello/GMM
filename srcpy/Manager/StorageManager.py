@@ -137,7 +137,7 @@ def generateSignedURL(ID, expires_after_seconds = 3600, nameScript = None):
 		blob = storage.Blob(config.SCRIPT_INFO + nameScript, bucket)
 	expiration_time = int(time.time() + expires_after_seconds)
 
-	url = blob.generate_signed_url(expiration_time)
+	url = blob.generate_signed_url(expiration_time, response_disposition = 'attachment; filename='+nameScript)
 	return url
 # END [generateSignedURL]
 
