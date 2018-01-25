@@ -1,11 +1,12 @@
 Metadata-Version: 2.0
 Name: setuptools
-Version: 38.2.5
+Version: 38.4.0
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Home-page: https://github.com/pypa/setuptools
 Author: Python Packaging Authority
 Author-email: distutils-sig@python.org
 License: UNKNOWN
+Project-URL: Documentation, https://setuptools.readthedocs.io/
 Description-Content-Type: text/x-rst; charset=UTF-8
 Keywords: CPAN PyPI distutils eggs package management
 Platform: UNKNOWN
