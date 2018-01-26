@@ -26,3 +26,19 @@ def firstLineOfDataDictionary(sheetName):
 	}
 	return switcher.get(sheetName)
 # END [firstLineOfDataDictionary]
+
+
+# STAR [getEndColumnCatalog]
+def getEndColumnCatalog(sheet):
+	switcher = {
+		"VERSION": 7,
+		"PRODUCTOS": 5,
+		"DEDUCIBLE": 4,
+		"SUMA ASEGURADA": 4,
+		"CM": 2,
+		"REGION": 2,
+		"COASEGURO": 2,
+		"Concentrado": 7
+	}
+	return switcher.get(sheet)
+# STAR [getEndColumnCatalog]

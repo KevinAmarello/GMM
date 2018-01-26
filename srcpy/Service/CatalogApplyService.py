@@ -159,22 +159,24 @@ def createDatabase(catalogManager, sqlManager):
 			#Drop table if exists
 			dropQuery = sqlManager._getDropTableQuery(sheetName.replace(" ", "_")) # Replace to SUMA_ASEGURADA
 			sqlManager._executeQuery(dropQuery)
+			logging.debug("Previous table deleted")
 
 			# Create table 	
 			columnNames = []
-			for cell in list(sheet.rows)[0]:
+			firstLine = list(sheet.rows)[0][:ExcelDictionary.getEndColumnCatalog(sheetName)]
+			for cell in firstLine:
 				columnNames.append(cell.value.encode('utf-8').replace(" ", ""))
-				#"\""+
+		
+
 			createTableQuery = SQLDictionary._getCatalogCreateTableQuery(sheetName).format(v = columnNames)
-			logging.debug(columnNames)
-			logging.debug(createTableQuery)
 			sqlManager._executeQuery(createTableQuery)
 
 			# Parse sheet to insert data
 			logging.debug("Populating table: " + sheetName)
 			# Get all lines and slice them to get values only
 			tableDataList = list(sheet.rows)[1:]
-			for line in tableDataList:
+			for lineC in tableDataList:
+				line = lineC[:ExcelDictionary.getEndColumnCatalog(sheetName)]
 				try:
 					valuesList = []
 					# Build valuesList
