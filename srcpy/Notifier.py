@@ -129,7 +129,7 @@ def prepareBody(info):
 	
 	for k in info.keys():
 		for v in info[k]:
-			infoTemp += v.replace("],", "],<br>") + " en tabla " + k +"<br>"
+			infoTemp += v.replace("],", "],<br>").replace("[[", "<br>[[") + " en tabla " + k +"<br>"
 	return infoTemp
 # END [prepareBody]
 
