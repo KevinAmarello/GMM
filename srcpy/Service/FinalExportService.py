@@ -6,6 +6,7 @@ from srcpy.Manager.SQLManager import SQLManagerClass
 import srcpy.Manager.ExcelManager as ExcelManager
 from srcpy.Manager.ExcelManager import ExcelManagerClass
 import srcpy.Manager.StorageManager as StorageManager
+import srcpy.Manager.ZipCreator as ZipCreator
 
 import srcpy.Notifier as Notifier
 from srcpy.Dictionary import FinalExportDictionary
@@ -54,7 +55,7 @@ def backgroundExport():
 
 		# Initalizes INFO's files signedURL list
 		listURL = []
-
+		listNamesToSign = []
 		# For each name
 		for name in listNames:
 			logging.debug("Loop table " + name[0])
@@ -82,7 +83,7 @@ def backgroundExport():
 					excelColCount = 1
 
 					# Prepare SCRIPT INFO line
-					lineInfo = prepareINFOLine(line, name[0])
+					lineInfo += prepareINFOLine(line, name[0])
 					
 					# For each cell
 					for cell in line:
@@ -90,24 +91,46 @@ def backgroundExport():
 						# Write data into Excel sheet
 						ExcelManager.setCell(sheet, cursor, excelColCount, str(cell))
 					cursor += 1
-					# Write INFO
-					fileStorage.write(lineInfo)
+				# Write INFO
+				fileStorage.write(lineInfo)
 				fileStorage.close()
-				# Generate file's signed url and add it to the list
-				scriptSignedURL = StorageManager.generateSignedURL(SCRIPT_ID, nameScript = name[0] + ".txt")
-				listURL.append((name[0], scriptSignedURL))
+				
 
-		d = defaultdict(list)
-		for k,v in listURL:
-			d[k].append(v)
+				listNamesToSign.append(name[0] + ".txt")
+				#listURL.append((name[0], scriptSignedURL))
+	
 
-		# Save Excel to Storage
+		
+
+		# Save Files to Storage
 		filename = StorageManager.saveContentXLSToStorage(workbook)
+		zipFile = ZipCreator.createZip(listNamesToSign)
+
 
 		# Generate signed URL to access file
-		excelSignedURL = StorageManager.generateSignedURL(EXCEL_FILE_ID, nameScript = filename)
+		excelSignedURL = StorageManager.generateSignedURL(filename)
+
+
+		if zipFile is None:
+			logging.debug("Error occured while creating Zip")
+			# Generate file's signed url and add it to the list
+			for name in listNamesToSign:
+				logging.debug("Signing URL: " + name)
+				scriptSignedURL = StorageManager.generateSignedURL(name, listScript = True)
+				listURL.append((name, scriptSignedURL))
+
+			d = defaultdict(list)
+			for k,v in listURL:
+				d[k].append(v)
+
+			# Notificate SUCCES
+			Notifier.notifByMail("FES", True, excelSignedURL, d)
+			return Response("Process done", status = 200)
+
+		scriptSignedURL = StorageManager.generateSignedURL(zipFile)
+
 		# Notificate SUCCES
-		Notifier.notifByMail("FES", True, excelSignedURL, d)
+		Notifier.notifByMail("FES", True, excelSignedURL, scriptSignedURL)
 	except Exception as e:
 		logging.debug(str(e))
 		Notifier.notifByMail("FES", False, str(e))
@@ -116,6 +139,8 @@ def backgroundExport():
 		q.purge()
 		return Response("Process done", status = 200)
 # END [backgroundExport]
+
+
 
 def prepareINFOLine(dbLine, table):
 	tmp = ""

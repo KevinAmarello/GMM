@@ -54,11 +54,19 @@ def notifByMail(operation, success, info = None, listScriptURL = None):
 	elif operation in ["FES"]:
 		if info is not None:
 			info = info.replace("\"", "").replace("\'", "")
+		
 		if type(listScriptURL) is defaultdict:
+			logging.debug("Adding List Zip files")
+			temp = "" 
 			for k in listScriptURL.keys():
-				logging.debug("Key: {0} / Value: {1}".format(k, listScriptURL[k]))
 				temp += "<a href=\"{0}\">Descargar el script {1}</a><br>".format(listScriptURL[k][0] , k)
-
+			listScriptURL = temp
+		else:
+			logging.debug("Adding Zip body")
+			if listScriptURL is not None:
+				listScriptURL = listScriptURL.replace("\"", "").replace("\'", "")
+				listScriptURL = "<a href=\"{0}\">Descargar los scripts INFO</a>.".format(listScriptURL)
+				logging.debug(listScriptURL)
 	else:
 		# Clean body
 		if info is not None:
@@ -75,11 +83,10 @@ def notifByMail(operation, success, info = None, listScriptURL = None):
 		else:
 			payload['body'] = "Un error ocurrio en el proceso de ingreso de cifras de control:<br> {0}. Favor de reintentar.".format(info)
 
-
 	if operation == "FES":
 		payload['subject'] = "Resultado de la exportacion final de archivos."
 		if success:
-			payload['body'] = "El proceso de exportacion sucedio exitosamente. <a href=\"{0}\">Descargar el archivo Excel</a><br>{1}Esta disponible solo una hora".format(info, temp)
+			payload['body'] = "El proceso de exportacion sucedio exitosamente.<br><a href=\"{0}\">Descargar el archivo Excel</a>.<br>{1}<br>Estan disponibles solo una hora".format(info, listScriptURL)
 		else:
 			payload['body'] = "Un error ocurrio en el proceso de exportacion:<br> {0}. Favor de reintentar.".format(info)
 

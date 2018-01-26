@@ -124,20 +124,18 @@ def renameFileHourDayMonth(filename):
 
 # START [generateSignedURL]
 # Generate a signed URL to access the file
-def generateSignedURL(ID, expires_after_seconds = 3600, nameScript = None):
-	logging.debug("Storage Manager Entry generateSignedURL")
+def generateSignedURL(fileName, expires_after_seconds = 3600, listScript = False):
+   	logging.debug("Storage Manager Entry generateSignedURL")
 	client = storage.Client()
 	default_bucket = config.BUCKET_VF_SIGNED_NAME
 	bucket = client.get_bucket(default_bucket)
-	if ID == "XLS":
-		logging.debug(config.EXCEL_SIGNED_FILE + nameScript)
-		blob = storage.Blob(config.EXCEL_SIGNED_FILE + nameScript, bucket)
+	if listScript:
+		blob = storage.Blob(config.SCRIPT_INFO + fileName, bucket)
 	else:
-		logging.debug(config.EXCEL_SIGNED_FILE + nameScript)
-		blob = storage.Blob(config.SCRIPT_INFO + nameScript, bucket)
+		blob = storage.Blob(config.EXCEL_SIGNED_FILE + fileName, bucket)
+	
 	expiration_time = int(time.time() + expires_after_seconds)
-
-	url = blob.generate_signed_url(expiration_time, response_disposition = 'attachment; filename='+nameScript)
+	url = blob.generate_signed_url(expiration_time, response_disposition = 'attachment; filename='+fileName)
 	return url
 # END [generateSignedURL]
 
