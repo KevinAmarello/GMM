@@ -1,5 +1,5 @@
 import logging
-from flask import Response, jsonify
+from flask import Response, jsonify, json
 
 from srcpy.Manager import StorageManager
 import config
@@ -43,7 +43,8 @@ def handleService():
 
 		logging.debug(str(payload))
 
-		return jsonify(payload), 200
+		return Response(response = json.dumps(payload), status = 200, mimetype='application/json')
+		#jsonify(payload), status = 200)
 	except Exception as e:
 		logging.debug(str(e))
 		return Response("PLOP", status = 500)

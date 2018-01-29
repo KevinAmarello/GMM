@@ -23,7 +23,7 @@ def getType(mail):
 	payload = {}
 	payload['type'] = result
 
-	return jsonify(payload), 200
+	return return Response(response = json.dumps(payload), status = 200, mimetype='application/json')
 # END [getType]
 
 

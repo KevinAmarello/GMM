@@ -85,14 +85,16 @@ def queueApply():
 @app.route('/getHistory', methods = ['GET'])
 def history():
 	logging.debug("***** Received request getHistory *****")
-	return GetHistorialService.handleService()
-	#response = GetHistorialService.handleService()
-	#response.headers['Access-Control-Allow-Origin'] = '*'
-	#return response
+	#return GetHistorialService.handleService()
+	response = GetHistorialService.handleService()
+	response.headers['Access-Control-Allow-Origin'] = '*'
+	return response
 
 @app.route('/getUserType', methods = ['POST'])
 def utype():
 	logging.debug("***** Received request getUserType *****")
 	mail = request.form['mail']
-	return GetUserType.getType(mail)
+	response = GetUserType.getType(mail)
+	response.headers['Access-Control-Allow-Origin'] = '*'
+	return response
 	
