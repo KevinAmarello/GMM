@@ -425,6 +425,8 @@ def getComodinCondition_OK_Query(table , column, sqlManager):
 		Output:
 			Query
 	"""
+	if table == "KTPTCPT" and column == "CDREGGMM":
+		return "SELECT DISTINCT CDPRODCO, CDPLAN FROM KTPTCPT WHERE CDREGGMM = \'{0}\'".format(ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column))
 	conditions = ComodinDictionary.getConditionColumnByTable(table)
 	conditionedComodinValue = ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column)
 	return sqlManager.getSelectConditionedComodinQuery(table, column, conditionedComodinValue, conditions)

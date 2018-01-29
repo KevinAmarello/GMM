@@ -147,6 +147,7 @@ def getConditionValueByTableAndColumn(table, cond):
 		("KTPTCOT", "CDPRODCO"): ['00001','00004'],
 		("KTPTCOT", "CDPLAN"): ['20','21','22','23','24'],
 		("KTPTCPT", "CDPRODCO"): ['00001','00004'],
+		("KTPTCPT", "CDPLAN"): ['XXXXX'],
 		("KTPTDOT", "CDPRODCO"): ['00001','00004'],
 		("KTPTDJT", "CDPRODCO"): ['00001','00004']
 	}
