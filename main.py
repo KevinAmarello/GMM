@@ -3,7 +3,7 @@ import logging
 
 from flask import Flask, request, Response
 
-from srcpy.Service import FinalExportService, DataValidationService, RegControlService, CatalogApplyService, GetHistorialService
+from srcpy.Service import FinalExportService, DataValidationService, RegControlService, CatalogApplyService, GetHistorialService, GetUserType
 
 app = Flask(__name__)
 
@@ -89,3 +89,10 @@ def history():
 	#response = GetHistorialService.handleService()
 	#response.headers['Access-Control-Allow-Origin'] = '*'
 	#return response
+
+@app.route('/getUserType', methods = ['POST'])
+def utype():
+	logging.debug("***** Received request getUserType *****")
+	mail = request.form['mail']
+	return GetUserType.getType(mail)
+	

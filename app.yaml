@@ -58,6 +58,9 @@ handlers:
 - url: /getHistory
   script: main.app
 
+- url: /getUserType
+  script: main.app
+
 - url: /
   static_files: dist/index.html
   upload: dist/index\.html
