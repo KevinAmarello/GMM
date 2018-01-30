@@ -461,7 +461,7 @@ def updateValues(sqlManager):
 					for table in ["KTPTCPT", "KTPTDNT", "KTPTBCT"]:
 						logging.debug("Loop in :" + table)
 						for line in tableData:
-							sqlManager._executeQuery("UPDATE {table} SET {colCode} = \'{CDELEMEN}\' WHERE {valorCol} = {DSELEM}".format(table = table, colCode = adaptASEGColumn("CDELEMEN", table), CDELEMEN=line[0], valorCol = adaptASEGColumn("DSELEMEN", table), DSELEMEN = line[1]))
+							sqlManager._executeQuery("UPDATE {table} SET {colCode} = \'{CDELEMEN}\' WHERE {valorCol} = {DSELEMEN}".format(table = table, colCode = adaptASEGColumn("CDELEMEN", table), CDELEMEN=line[0], valorCol = adaptASEGColumn("DSELEMEN", table), DSELEMEN = line[1]))
 					
 					# Scenario 2: If code(table) = CDELEMEN -> code(table) = NCODIGO  --  [KTPTBQT]
 					for table in ["KTPTBQT"]:
@@ -473,7 +473,6 @@ def updateValues(sqlManager):
 						listError.append((table, str(e).replace("\"", "").replace("\'", "")))
 						continue
 			elif sheetName == "DEDUCIBLE":
-				logging.debug("Loop in catalog " + sheetName)
 				tableData = sqlManager._executeQuery("SELECT CDELEMEN, DSELEMEN, NCODIGO FROM {0}".format(sheetName))
 				# DEDUCIBLE is affected by a 2-scenarii logic.
 				#Scenario 1: If code(table) = CDELEMEN -> code(table) = NCODIGO  --  Table [KTPTCQT, KTPTDIT, KTPTCLT, KTPTCPT, KTPTDOT]
@@ -491,13 +490,13 @@ def updateValues(sqlManager):
 							if line[0] != "0.000" and line[1] == "0.000":
 								# Check line[0] is Catalog
 								# If exists, then CDDEDUCI = CDELEMEN
-								result = sqlManager._executeQuery("SELECT CDELEMEN FROM DEDUCIBLE WHERE DSELEMEN = {val}".format(line[0]))
+								result = sqlManager._executeQuery("SELECT CDELEMEN FROM DEDUCIBLE WHERE DSELEMEN = {0}".format(line[0]))
 								if len(result) != 0:
 									sqlManager._executeQuery("UPDATE {table} SET CDDEDUCI = \'{CDELEMEN}\' WHERE VADEDUNA = {duna} AND VADEDUIN = {duin}".format(table = table, CDELEMEN = result[0][0], duna = line[0], duin = line[1]))
 							if line[0] == "0.000" and line[1] != "0.000":
 								# Check line[1] is Catalog
 								# If exists, then CDDEDUCI = CDELEMEN
-								result = sqlManager._executeQuery("SELECT CDELEMEN FROM DEDUCIBLE WHERE DSELEMEN = {val}".format(line[1]))
+								result = sqlManager._executeQuery("SELECT CDELEMEN FROM DEDUCIBLE WHERE DSELEMEN = {0}".format(line[1]))
 								if len(result) != 0:
 									sqlManager._executeQuery("UPDATE {table} SET CDDEDUCI = \'{CDELEMEN}\' WHERE VADEDUNA = {duna} AND VADEDUIN = {duin}".format(table = table, CDELEMEN = result[0][0], duna = line[0], duin = line[1]))
 					except Exception as e:
@@ -508,7 +507,6 @@ def updateValues(sqlManager):
 				versionData = sqlManager._executeQuery("SELECT * FROM VERSION")
 				# Table Column is incluided in the table
 				for line in versionData:
-					logging.debug("Loop in: " + line[1])
 					try:
 						query = CatalogDictionary.getUpdateVersionQueryByTable(line[1], line)					
 						logging.debug(query)
