@@ -495,6 +495,7 @@ def getUpdateVersionQueryByTable(table, data):
 
 
 # START [columnToIgnoreByTable]
+# Some table doesnt have some columns, so no check
 def columnToIgnoreByTable(table):
 	switcher = {
 		"KTPT6WT": ["CDPRODCO", "CDPRODTE", "FEVALOR", "TCNUMVER"],
@@ -517,7 +518,7 @@ def getTableByToIgnoreComodin(col):
 		# VERSION / PRODUCTOS
 		"CDPLAN": ["KTPTCPT", "KTPTDOT", "KTPTCNT", "KTPT6WT", "KTPTDMT", "KTPTCKT", "KTPTDLT"],
 		"CDPRODTE": ["KTPTCPT"], 
-		"CDPRODCO": ["KTPTCPT", "KTPTDOT", "KPTPTDIT", "KTPTDMT"],
+		"CDPRODCO": ["KTPTCPT", "KTPTDOT", "KTPTDIT", "KTPTDMT"],
 		# DEDUCIBLES
 		"CDDEDUCI": ["KTPTCOT", "KTPTCPT", "KTPTDOT"],
 		# SUMA ASEGURADA
