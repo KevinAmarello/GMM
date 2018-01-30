@@ -1,6 +1,6 @@
 import logging
 
-from flask import Response, jsonify
+from flask import Response, json
 
 from srcpy.Manager.SQLManager import SQLManagerClass
 

@@ -1,5 +1,5 @@
 import logging
-from flask import Response, jsonify, json
+from flask import Response, json
 
 from srcpy.Manager import StorageManager
 import config
