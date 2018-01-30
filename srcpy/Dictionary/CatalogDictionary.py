@@ -52,9 +52,9 @@ def getSelectVersionDifferenceQueryByTable(table):
 				AND VERSION.PRODUCTOCOMERCIAL = {table}.CDPRODCO
 				AND VERSION.CODIGODELPLAN = {table}.CDPLAN
 				AND VERSION.VERSIONACTUAL = {table}.TCNUMVER
-				WHERE ({table}.CDPLAN NOT IN {valPlan}
-				OR {table}.CDPRODCO NOT IN {valCo}
-				OR {table}.CDPRODTE NOT IN {valTe})
+				WHERE {table}.CDPLAN NOT IN {valPlan}
+				AND {table}.CDPRODCO NOT IN {valCo}
+				AND {table}.CDPRODTE NOT IN {valTe}
 				AND VERSION.CODIGODELPLAN IS NULL
 				""".format(table = table, valPlan = tuple(getValueToIgnoreByTableAndComodin(table, "CDPLAN")), 
 											valCo = tuple(getValueToIgnoreByTableAndComodin(table, "CDPRODCO")),
@@ -70,8 +70,8 @@ def getSelectVersionDifferenceQueryByTable(table):
 				AND VERSION.PRODUCTOCOMERCIAL = {table}.CDPRODCO
 				AND VERSION.CODIGODELPLAN = {table}.CDPLAN
 				AND VERSION.VERSIONACTUAL = {table}.TCNUMVER
-				WHERE ({table}.CDPLAN NOT IN {valPlan}
-				OR {table}.CDPRODCO NOT IN {valCo})
+				WHERE {table}.CDPLAN NOT IN {valPlan}
+				AND {table}.CDPRODCO NOT IN {valCo}
 				AND VERSION.CODIGODELPLAN IS NULL
 				""".format(table = table, valPlan = tuple(getValueToIgnoreByTableAndComodin(table, "CDPLAN")), 
 											valCo = tuple(getValueToIgnoreByTableAndComodin(table, "CDPRODCO")))
@@ -127,9 +127,9 @@ def getSelectProductosDifferenceQueryByTable(table):
 				ON PRODUCTOS.PRODUCTOTECNICO = {table}.CDPRODTE
 				AND PRODUCTOS.PRODUCTOCOMERCIAL = {table}.CDPRODCO
 				AND PRODUCTOS.CODIGODELPLAN = {table}.CDPLAN
-				WHERE ({table}.CDPLAN NOT IN {valPlan}
-				OR {table}.CDPRODCO NOT IN {valCo}
-				OR {table}.CDPRODTE NOT IN {valTe})
+				WHERE {table}.CDPLAN NOT IN {valPlan}
+				AND {table}.CDPRODCO NOT IN {valCo}
+				AND {table}.CDPRODTE NOT IN {valTe}
 				AND PRODUCTOS.CODIGODELPLAN IS NULL
 				""".format(table = table, valPlan = tuple(getValueToIgnoreByTableAndComodin(table, "CDPLAN")), 
 											valCo = tuple(getValueToIgnoreByTableAndComodin(table, "CDPRODCO")),
@@ -143,8 +143,8 @@ def getSelectProductosDifferenceQueryByTable(table):
 				ON PRODUCTOS.PRODUCTOTECNICO = {table}.CDPRODTE
 				AND PRODUCTOS.PRODUCTOCOMERCIAL = {table}.CDPRODCO
 				AND PRODUCTOS.CODIGODELPLAN = {table}.CDPLAN
-				WHERE ({table}.CDPLAN NOT IN {valPlan}
-				OR {table}.CDPRODCO NOT IN {valCo})
+				WHERE {table}.CDPLAN NOT IN {valPlan}
+				AND {table}.CDPRODCO NOT IN {valCo}
 				AND PRODUCTOS.CODIGODELPLAN IS NULL
 				""".format(table = table, valPlan = tuple(getValueToIgnoreByTableAndComodin(table, "CDPLAN")), 
 											valCo = tuple(getValueToIgnoreByTableAndComodin(table, "CDPRODCO")))
@@ -560,7 +560,7 @@ def getValueToIgnoreByTableAndComodin(table, com):
 		("KTPTCPT", "CDDEDUCI"): ("ZZZZ", "XXXX"),
 		("KTPTDOT", "CDDEDUCI"): ("ZZZZ", "XXXX"),
 		# SUMA ASEGURADA
-		("KTPTCPT", "VASUASEG"): ("999999999", "@@@@@"),
+		("KTPTCPT", "VASUASEG"): ("999999999", "0.000"),
 		("KTPTBCT", "CDSUASEG"): ("ZZ", "@@@@@"),
 		# CM
 		("KTPTCNT", "INTABULA"): ("XXXX", "ZZZZ"),

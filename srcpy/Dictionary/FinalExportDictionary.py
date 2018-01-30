@@ -29,7 +29,7 @@ def getFormatByTable(table):
 
 
 def commonDataEndLine():
-	usuario = "OCGOMEZ"
+	usuario = "OCGOMEZ   "
 	empusu = "0001"
 	prog = "KTCLMMGE"
 	date = datetime.datetime.now().strftime("%Y-%m-%d-%H.%M.%S.%f")

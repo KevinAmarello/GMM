@@ -92,6 +92,8 @@ def backgroundExport():
 						ExcelManager.setCell(sheet, cursor, excelColCount, str(cell))
 					cursor += 1
 				# Write INFO
+				# Delete last break line in file
+				lineInfo = lineInfo[:-2]
 				fileStorage.write(lineInfo)
 				fileStorage.close()
 				
