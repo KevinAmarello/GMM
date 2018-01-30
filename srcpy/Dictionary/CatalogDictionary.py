@@ -424,24 +424,10 @@ def getUpdateVersionQueryByTable(table, data):
 	# KTPT6WT is special as it doesnt need all columns
 	if table == "KTPT6WT":
 
-		tcnumverO = ""
-		cdplan = "" 
-		tcnumvN = "" 
-
-		if is_integer(data[6]):
-			tcnumvN = data[6]
-		else:
-			tcnumvN = "\"{0}\"".format(data[6])
-
-		if is_integer(data[4]):
-			cdplan = data[4]
-		else:
-			cdplan = "\"{0}\"".format(data[4])
-
-		if is_integer(data[5]):
-			tcnumverO = data[5]
-		else:
-			tcnumverO = "\"{0}\"".format(data[5])
+		
+		tcnumvN = "\"{0}\"".format(data[6])
+		cdplan = "\"{0}\"".format(data[4])
+		tcnumverO = "\"{0}\"".format(data[5])
 
 
 		query = """\
@@ -453,31 +439,11 @@ def getUpdateVersionQueryByTable(table, data):
 		return query.format(tcnumvN, cdplan, tcnumverO)
 
 	else:
-		tcnumverO = ""
-		cdplan = "" 
-		tcnumvN = ""
-		cdprodco = "" 
-		if is_integer(data[6]):
-			tcnumvN = data[6]
-		else:
-			tcnumvN = "\"{0}\"".format(data[6])
-
-		if is_integer(data[4]):
-			cdplan = data[4]
-		else:
-			cdplan = "\"{0}\"".format(data[4])
-
-		if is_integer(data[5]):
-			tcnumverO = data[5]
-		else:
-			tcnumverO = "\"{0}\"".format(data[5])
-
-		if is_integer(data[3]):
-			cdprodco = data[3]
-		else:
-			cdprodco = "\"{0}\"".format(data[3])
-
-
+		tcnumvN = "\"{0}\"".format(data[6])
+		cdplan = "\"{0}\"".format(data[4])
+		tcnumverO = "\"{0}\"".format(data[5])
+		cdprodco = data[3]
+		cdprodco = "\"{0}\"".format(data[3])
 		cdprodte = "\"{0}\"".format(data[2])
 
 
