@@ -38,7 +38,7 @@ def _getCatalogCreateTableQuery(title):
 		"PRODUCTOS": "CREATE TABLE PRODUCTOS({v[0]} CHAR(10), {v[1]} CHAR(10), {v[2]} CHAR(20), {v[3]} CHAR(5), DESCRIPCIONDELPLAN CHAR(20))",
 		"DEDUCIBLE": "CREATE TABLE DEDUCIBLE({v[0]} CHAR(4), {v[1]} DEC(17,3), {v[2]} CHAR(20), {v[3]} CHAR(4))",
 		"SUMA ASEGURADA": "CREATE TABLE SUMA_ASEGURADA({v[0]} CHAR(5), {v[1]} DEC(17,3), {v[2]} CHAR(20), {v[3]} CHAR(5))",
-		"CM": "CREATE TABLE CM({v[0]} CHAR(3), {v[1]} CHAR(20))",
+		"CM": "CREATE TABLE CM({v[0]} CHAR(4), {v[1]} CHAR(20))",
 		"REGION": "CREATE TABLE REGION({v[0]} CHAR(10), {v[1]} CHAR(20))",		
 		"COASEGURO": "CREATE TABLE COASEGURO({v[0]} CHAR(3), {v[1]} CHAR(15))",
 		"Concentrado": "CREATE TABLE Concentrado(VERSION CHAR(7), {v[1]} CHAR(7), {v[2]} CHAR(7), SUMA_ASEGURADA CHAR(7), {v[4]} CHAR(7), {v[5]} CHAR(7), {v[6]} CHAR(7))"

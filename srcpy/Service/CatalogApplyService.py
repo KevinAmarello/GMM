@@ -312,8 +312,8 @@ def checkValues(sqlManager):
 					listColumn = sqlManager._getColumnsName(catalogName)
 					if table[0] == "KTPTCKT":
 						query = """ 
-						SELECT DISTINCT CPASLINN FROM {table} WHERE CPASLINN NOT IN (SELECT DISTINCT DSELEMEN FROM SUMA_ASEGURADA)
-						""".format(table = table[0])
+						SELECT DISTINCT CPASLINN FROM {table} WHERE CPASLINN NOT IN (SELECT DISTINCT DSELEMEN FROM SUMA_ASEGURADA) AND CPASLINN NOT IN ({val})
+						""".format(table = table[0], val = 0.000)
 						dataTable = sqlManager._executeQuery(query)
 
 						try:
@@ -323,12 +323,46 @@ def checkValues(sqlManager):
 							listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
 
 						query = """ 
-						SELECT DISTINCT CPASLINI FROM {table} WHERE CPASLINI NOT IN (SELECT DISTINCT DSELEMEN FROM SUMA_ASEGURADA)
-						""".format(table = table[0])
+						SELECT DISTINCT CPASLINI FROM {table} WHERE CPASLINI NOT IN (SELECT DISTINCT DSELEMEN FROM SUMA_ASEGURADA) AND CPASLINI NOT IN ({val})
+						""".format(table = table[0], val = 0.000)
 						dataTable = sqlManager._executeQuery(query)
 
 						try:
 							assert len(dataTable) == 0, "Valor de CPASLINI: {0} no es permitida por el catalogo {1} ".format(dataTable, catalogName)
+						except Exception as e:
+							logging.debug(str(e))
+							listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
+
+					elif table[0] == "KTPTBQT":
+						query = """ 
+						SELECT DISTINCT VASAEGNA FROM {table} WHERE VASAEGNA NOT IN (SELECT DISTINCT DSELEMEN FROM SUMA_ASEGURADA) AND VASAEGNA NOT IN ({val})
+						""".format(table = table[0], val = 0.000)
+						dataTable = sqlManager._executeQuery(query)
+
+						try:
+							assert len(dataTable) == 0, "Valor de VASAEGNA: {0} no es permitida por el catalogo {1} ".format(dataTable,catalogName)
+						except Exception as e:
+							logging.debug(str(e))
+							listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
+
+						query = """ 
+						SELECT DISTINCT VASAEGIN FROM {table} WHERE VASAEGIN NOT IN (SELECT DISTINCT DSELEMEN FROM SUMA_ASEGURADA) AND VASAEGIN NOT IN ({val})
+						""".format(table = table[0], val = 0.000)
+						dataTable = sqlManager._executeQuery(query)
+
+						try:
+							assert len(dataTable) == 0, "Valor de CPASLINI: {0} no es permitida por el catalogo {1} ".format(dataTable, catalogName)
+						except Exception as e:
+							logging.debug(str(e))
+							listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
+
+						query = """ 
+						SELECT DISTINCT CDSUASEG FROM {table} WHERE CDSUASEG NOT IN (SELECT DISTINCT CDELEMEN FROM SUMA_ASEGURADA)
+						""".format(table = table[0])
+						dataTable = sqlManager._executeQuery(query)
+
+						try:
+							assert len(dataTable) == 0, "Valor de CDSUASEG: {0} no es permitida por el catalogo {1} ".format(dataTable, catalogName)
 						except Exception as e:
 							logging.debug(str(e))
 							listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
@@ -362,17 +396,6 @@ def checkValues(sqlManager):
 								except Exception as e:
 									logging.debug(str(e))
 									listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
-					###########################
-					# Horizontal control
-					# Select lines from the table and check that they are included in the catalog
-					logging.debug("Horizontal control 2: " + catalogName + "/" + table[0])
-					query = CatalogDictionary.getSelectDifferenceQueryByCatalogAndTable(catalogName, table[0])
-					dataTable = sqlManager._executeQuery(query)
-					try:
-						assert len(dataTable) == 0, "Linea: {0} no es permitida por el catalogo {1} ".format(dataTable, catalogName)
-					except Exception as e:
-						logging.debug("AssertionError " + str(e))
-						listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
 				# Other Catalogs are basically the control of a single column
 				else:
 					###########################
@@ -386,7 +409,6 @@ def checkValues(sqlManager):
 					except Exception as e:
 						logging.debug("AssertionError " + str(e))
 						listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
-
 		d = defaultdict(list)
 		for k,v in listError:
 			d[k].append(v)
@@ -428,64 +450,72 @@ def updateValues(sqlManager):
 		# We start TRANSACTION so we can cancel changes if something goes wrong
 		sqlManager._executeQuery("SET autocommit = 0")
 		sqlManager._executeQuery("START TRANSACTION")
+		
 		for sheetName in ["VERSION", "DEDUCIBLE", "SUMA_ASEGURADA"]:
 			logging.debug("Loop in catalog " + sheetName)
-			# Select Table
-			if sheetName in ["DEDUCIBLE", "SUMA_ASEGURADA"]:
-				if sheetName == "SUMA_ASEGURADA":
-					tableData = sqlManager._executeQuery("SELECT CDELEMEN, NCODIGO FROM {0}".format(sheetName))			
-					tableList = sqlManager._executeQuery("SELECT {0} FROM Concentrado WHERE {0} <> \"None\"".format(sheetName))
-					logging.debug("Tables to act on " + str(tableList))
-					for table in tableList:
-						logging.debug("Loop in table " + table[0])
-						if table[0] in ["KTPTCPT", "KTPTBCT", "KTPTBQT", "KTPTDNT"]:
-							for line in tableData:
-								try:
-									# Build and execute query
-									query = "UPDATE {table} SET {col} = \"{newV}\" WHERE {col} = \"{oldV}\"".format(
-										table = table[0],
-										col = CatalogDictionary.getColumnBySheet(sheetName, table[0]),
-										oldV = line[0],
-										newV = line[1])
-									logging.debug(query)
-									sqlManager._executeQuery(query)	
-								except Exception as e:
-									logging.debug("Exception " + str(e))
-									listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
-									continue
-						else: 
-							continue
-				elif sheetName == "DEDUCIBLE":
-					tableData = sqlManager._executeQuery("SELECT CDELEMEN, NCODIGO FROM {0}".format(sheetName))			
-					tableList = sqlManager._executeQuery("SELECT DEDUCIBLES FROM Concentrado WHERE DEDUCIBLES <> \"None\"")
-					logging.debug("Tables to act on " + str(tableList))
-					for table in tableList:
-						logging.debug("Loop in table " + table[0])
+			if sheetName == "SUMA_ASEGURADA":
+				try:
+					# SUMA ASEGURADA is affected by a 2-scenarii logic.
+					# Scenario 1: If valor(table) = DSELEMEN -> code(table) = CDELEMEN  --  [KTPTCPT, KTPTDNT, KTPTBCT]
+					tableData = sqlManager._executeQuery("SELECT CDELEMEN, DSELEMEN, NCODIGO FROM {0}".format(sheetName))
+					for table in ["KTPTCPT", "KTPTDNT", "KTPTBCT"]:
+						logging.debug("Loop in :" + table)
 						for line in tableData:
-							try:
-								# Build and execute query
-								query = "UPDATE {table} SET {col} = \"{newV}\" WHERE {col} = \"{oldV}\"".format(
-									table = table[0],
-									col = CatalogDictionary.getColumnBySheet(sheetName, table[0]),
-									oldV = line[0],
-									newV = line[1])
-								logging.debug(query)
-								sqlManager._executeQuery(query)	
-							except Exception as e:
-								logging.debug("Exception " + str(e))
-								listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
-								continue			
+							sqlManager._executeQuery("UPDATE {table} SET {colCode} = \'{CDELEMEN}\' WHERE {valorCol} = {DSELEM}".format(table = table, colCode = adaptASEGColumn("CDELEMEN", table), CDELEMEN=line[0], valorCol = adaptASEGColumn("DSELEMEN", table), DSELEMEN = line[1]))
+					
+					# Scenario 2: If code(table) = CDELEMEN -> code(table) = NCODIGO  --  [KTPTBQT]
+					for table in ["KTPTBQT"]:
+						logging.debug("Loop in :" + table)	
+						for line in tableData:
+							sqlManager._executeQuery("UPDATE {table} SET {colCode} = \'{NCODIGO}\' WHERE {colCode} = \'{CDELEMEN}\'".format(table = table, colCode = adaptASEGColumn("CDELEMEN", table), NCODIGO = line[2], CDELEMEN=line[0]))
+				except Exception as e:
+						logging.debug("Exception " + str(e))
+						listError.append((table, str(e).replace("\"", "").replace("\'", "")))
+						continue
+			elif sheetName == "DEDUCIBLE":
+				logging.debug("Loop in catalog " + sheetName)
+				tableData = sqlManager._executeQuery("SELECT CDELEMEN, DSELEMEN, NCODIGO FROM {0}".format(sheetName))
+				# DEDUCIBLE is affected by a 2-scenarii logic.
+				#Scenario 1: If code(table) = CDELEMEN -> code(table) = NCODIGO  --  Table [KTPTCQT, KTPTDIT, KTPTCLT, KTPTCPT, KTPTDOT]
+				for table in ["KTPTCQT", "KTPTDIT", "KTPTCLT", "KTPTCPT", "KTPTDOT"]:
+					logging.debug("Loop in :" + table)
+					for line in tableData:
+						sqlManager._executeQuery("UPDATE {table} SET CDDEDUCI = \'{NCODIGO}\' WHERE CDDEDUCI = \'{CDELEMEN}\'".format(table = table, NCODIGO = line[2], CDELEMEN=line[0]))
+				#Scenario 2: For tables containing 2 deducible columns, get the one that != 0. If valor(table) = DSELEMEN, CDDEDUCI = CDELEMEN  --  Table [KTPTDFT, KTPT6WT]
+				for table in ["KTPTDFT", "KTPT6WT"]:
+					try:
+						logging.debug("Loop in :" + table)
+						tableColum = sqlManager._executeQuery("SELECT VADEDUNA, VADEDUIN FROM {0}".format(table))
+						# For each line in table
+						for line in tableColum:
+							if line[0] != "0.000" and line[1] == "0.000":
+								# Check line[0] is Catalog
+								# If exists, then CDDEDUCI = CDELEMEN
+								result = sqlManager._executeQuery("SELECT CDELEMEN FROM DEDUCIBLE WHERE DSELEMEN = {val}".format(line[0]))
+								if len(result) != 0:
+									sqlManager._executeQuery("UPDATE {table} SET CDDEDUCI = \'{CDELEMEN}\' WHERE VADEDUNA = {duna} AND VADEDUIN = {duin}".format(table = table, CDELEMEN = result[0][0], duna = line[0], duin = line[1]))
+							if line[0] == "0.000" and line[1] != "0.000":
+								# Check line[1] is Catalog
+								# If exists, then CDDEDUCI = CDELEMEN
+								result = sqlManager._executeQuery("SELECT CDELEMEN FROM DEDUCIBLE WHERE DSELEMEN = {val}".format(line[1]))
+								if len(result) != 0:
+									sqlManager._executeQuery("UPDATE {table} SET CDDEDUCI = \'{CDELEMEN}\' WHERE VADEDUNA = {duna} AND VADEDUIN = {duin}".format(table = table, CDELEMEN = result[0][0], duna = line[0], duin = line[1]))
+					except Exception as e:
+						logging.debug("Exception " + str(e))
+						listError.append((table, str(e).replace("\"", "").replace("\'", "")))
+						continue
 			else:
 				versionData = sqlManager._executeQuery("SELECT * FROM VERSION")
 				# Table Column is incluided in the table
 				for line in versionData:
+					logging.debug("Loop in: " + line[1])
 					try:
 						query = CatalogDictionary.getUpdateVersionQueryByTable(line[1], line)					
 						logging.debug(query)
 						sqlManager._executeQuery(query)	
 					except Exception as e:
 						logging.debug("Exception " + str(e))
-						listError.append((table[0], str(e).replace("\"", "").replace("\'", "")))
+						listError.append((line[1], str(e).replace("\"", "").replace("\'", "")))
 						continue
 
 		d = defaultdict(list)
@@ -558,18 +588,20 @@ def adaptColumn(col):
 
 def adaptASEGColumn(col, table):
 	if col == "CDELEMEN":
-		if table in ["KTPTBCT", "KTPTCPT"]:
+		if table in ["KTPTBCT", "KTPTCPT", "KTPTBQT"]:
 			return "CDSUASEG"
 		elif table in ["KTPTDNT"]:
 			return "CDSAPERM"
 		else:
 			return None
 	# VASUASEG
-	if col == "CDELEMEN":
+	if col == "DSELEMEN":
 		if table in ["KTPTBCT", "KTPTCPT", "KTPT8LT"]:
 			return "VASUASEG"
-		else:
+		elif table in ["KTPTDNT"]:
 			return "CPASEGUR"
+		else:
+			return None
 
 
 # This exception allows the process to end
