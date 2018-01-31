@@ -147,7 +147,6 @@ def backgroundExport():
 def prepareINFOLine(dbLine, table):
 	tmp = ""
 	formatTable = FinalExportDictionary.getFormatByTable(table)
-	count = 0
 	for cell in dbLine:
 		# Get cell's format
 		f = formatTable[count]
@@ -168,8 +167,15 @@ def prepareINFOLine(dbLine, table):
 				digA = len(valueString.rsplit(".")[1])			
 				lengthAfterPoint = int((f[2]))
 				lengthBeforePoint = int((f[1])) - lengthAfterPoint - 1
-				valueString = "0"*(lengthBeforePoint - digB) + valueString + "0"*(lengthAfterPoint-digA)
-		count += 1
+				## As there is a conflict between MySQL and INFO
+				# VACTTAR (7.6): 1 digit before point - 5 after
+				if int(f[1]) == 7 and int(f[2]) == 6:
+					# Truncate last digit if there are 6
+					if digA == 6:
+						valueString = valueString[:-1]
+					valueString = valueString + "0"*(5-digA)
+				else:				
+					valueString = "0"*(lengthBeforePoint - digB) + valueString + "0"*(lengthAfterPoint-digA)
 		tmp += valueString
 	tmp = tmp + FinalExportDictionary.commonDataEndLine()
 	return tmp
