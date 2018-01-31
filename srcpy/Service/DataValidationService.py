@@ -153,6 +153,29 @@ def createDatabase(excelManager):
 				flod = ExcelManager.getFirstLineOfData(sheetName)
 				# Get all lines and slice them to get values only
 				tableDataList = list(sheet.rows)[flod-1:]
+
+				# Find duplicated lines
+				logging.debug("Looking for duplicates")
+				tempList = []
+				for line in tableDataList:
+					if not isLastLine(line):
+						valuesLine = []
+						# Build valuesList
+						for cell in line[1:]:
+							if(cell is None or cell.value is None):
+								continue
+							if(cell is not None and cell.value is not None):
+								valuesLine.append("\""+str(cell.value)+"\"")
+						tempList.append(valuesLine)
+					else:
+						break
+				dupes = [x for n,x in enumerate(tempList) if x in tempList[:n]]
+
+				if len(dupes) != 0:
+					logging.debug("Duplicated: " + str(dupes))
+					listError.append((sheetName, "Lineas duplicadas:" + str(dupes).replace("\"", "").replace("\'", "")))
+
+				# Populating table
 				for line in tableDataList:
 					try:
 						if not isLastLine(line):
