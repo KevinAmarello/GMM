@@ -147,6 +147,7 @@ def backgroundExport():
 def prepareINFOLine(dbLine, table):
 	tmp = ""
 	formatTable = FinalExportDictionary.getFormatByTable(table)
+	count = 0
 	for cell in dbLine:
 		# Get cell's format
 		f = formatTable[count]
@@ -176,6 +177,7 @@ def prepareINFOLine(dbLine, table):
 					valueString = valueString + "0"*(5-digA)
 				else:				
 					valueString = "0"*(lengthBeforePoint - digB) + valueString + "0"*(lengthAfterPoint-digA)
+		count += 1
 		tmp += valueString
 	tmp = tmp + FinalExportDictionary.commonDataEndLine()
 	return tmp
