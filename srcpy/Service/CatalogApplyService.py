@@ -385,8 +385,8 @@ def checkValues(sqlManager):
 								else:
 									logging.debug("This column hasnt comodin columns")
 									query = """ 
-									SELECT DISTINCT {colT} FROM {table} WHERE {colT} NOT IN (SELECT DISTINCT {colC} FROM SUMA_ASEGURADA)
-									""".format(colT = colTable, table = table[0], colC = column)
+									SELECT DISTINCT {colT} FROM {table} WHERE {colT} NOT IN (SELECT DISTINCT {colC} FROM SUMA_ASEGURADA AND {colT} NOT IN ({val}))
+									""".format(colT = colTable, table = table[0], colC = column, val = 0.000)
 
 								logging.debug(query)
 								dataTable = sqlManager._executeQuery(query)
