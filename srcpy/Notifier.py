@@ -106,8 +106,8 @@ def notifByMail(operation, success, info = None, listScriptURL = None):
 
 	logging.debug(str(json.dumps(payload)))
 
-	headers = {'content-type': 'application/json'}
-	requests.post("https://api-dev.oscp.gnp.com.mx/notifier/notification/mail", data=json.dumps(payload), headers = headers)
+	headers = {'Accept': 'application/json', 'content-type': 'application/json;charset=utf-8', 'apiKey': 'l7xxa7482b574f8445d7ae1824af60dc2096'}
+	requests.post("https://api-qa.oscp.gnp.com.mx/notifier/notification/mail", data=json.dumps(payload), headers = headers)
 # END [notifByMail]
 
 
