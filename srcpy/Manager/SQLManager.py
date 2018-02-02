@@ -4,6 +4,7 @@ import MySQLdb
 import logging
 
 from srcpy.Dictionary import SQLDictionary
+import config
 
 # These environment variables are configured in app.yaml.
 CLOUDSQL_CONNECTION_NAME = os.environ.get('CLOUDSQL_CONNECTION_NAME')
@@ -24,7 +25,7 @@ class SQLManagerClass:
           	  unix_socket = cloudsql_socket,
           	  user = CLOUDSQL_USER,
            	  passwd = CLOUDSQL_PASSWORD,
-           	  db = "PBA",
+           	  db = config.DATABASE_NAME,
            	  charset = "utf8")
 
 	    # If the unix socket is unavailable, then try to connect using TCP. This
@@ -34,7 +35,7 @@ class SQLManagerClass:
 	    #   $ cloud_sql_proxy -instances=your-connection-name=tcp:3306
 	    #
 		else:
-			self.db = MySQLdb.connect('35.192.228.4', CLOUDSQL_USER, CLOUDSQL_PASSWORD, "PBA")
+			self.db = MySQLdb.connect('35.192.228.4', CLOUDSQL_USER, CLOUDSQL_PASSWORD, config.DATABASE_NAME)
 		self.cursor = self.db.cursor()
 
 
