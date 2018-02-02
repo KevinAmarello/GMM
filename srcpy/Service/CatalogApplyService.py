@@ -168,7 +168,7 @@ def createDatabase(catalogManager, sqlManager):
 				columnNames.append(cell.value.encode('utf-8').replace(" ", ""))
 		
 
-			createTableQuery = SQLDictionary._getCatalogCreateTableQuery(sheetName).format(v = columnNames)
+			createTableQuery = SQLDictionary._getCatalogCreateTableQuery(sheetName)
 			sqlManager._executeQuery(createTableQuery)
 
 			# Parse sheet to insert data
