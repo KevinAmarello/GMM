@@ -1,0 +1,19 @@
+<-- Create the database -->
+CREATE DATABASE <database_name>;
+<-- Set it as active database -->
+USE <database_name>;
+<-- Create a user -->
+CREATE USER '<userName>'@'<connection_name>' IDENTIFIED BY '<password>';
+<-- Give rights to the user -->
+GRANT ALL PRIVILEGES ON * . * TO '<userName>'@'<connection_name>'
+
+### IMPORTANT ###
+Once everything is set up, you will need to update 
+app.yaml 
+l.29: Insert connection_name
+l.30: Insert userName
+l.31: Insert password
+config.py
+l.76: Insert database_name
+
+
