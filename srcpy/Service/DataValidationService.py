@@ -333,7 +333,7 @@ def checkLines_Condition(table , column, sqlManager, listError):
 	queryCond = getComodinCondition_OK_Query(table , column, sqlManager)
 	logging.debug(queryCond)
 	resultSet = sqlManager._executeQuery(queryCond)
-	
+
 	# So we get the conditions colums, assert expexted values are respected
 	for result in resultSet:
 		# If two conditions
@@ -341,7 +341,10 @@ def checkLines_Condition(table , column, sqlManager, listError):
 			logging.debug("Two conditions")
 			# [CDPRODCO, CDPLAN]
 			try:
-				assert str(result[0]) in ComodinDictionary.getConditionValueByTableAndColumn(table, "CDPRODCO") and str(result[1]) in ComodinDictionary.getConditionValueByTableAndColumn(table, "CDPLAN"), "Valor de comodin incorecta. Las condiciones no estan satisfechas. Comodin: {0} - Valor: {1}".format(column, ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column))
+				if table == "KTPTCNT" and column == "INCONTMM":
+					assert str(result[0]) in ComodinDictionary.getConditionValueByTableAndColumn(table, "CDPRODCO") and str(result[1]) in ['20','21','22','23','24','33'], "Valor de comodin incorecta. Las condiciones no estan satisfechas. Comodin: {0} - Valor: {1}".format(column, ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column))
+				else:
+					assert str(result[0]) in ComodinDictionary.getConditionValueByTableAndColumn(table, "CDPRODCO") and str(result[1]) in ComodinDictionary.getConditionValueByTableAndColumn(table, "CDPLAN"), "Valor de comodin incorecta. Las condiciones no estan satisfechas. Comodin: {0} - Valor: {1}".format(column, ComodinDictionary.getConditionedComodinValueByTableAndComodin(table, column))
 			except Exception as ex:
 				logging.debug("Exception: " + str(ex))
 				listError.append((table, str(ex).replace("\"", "").replace("\'", "")))
