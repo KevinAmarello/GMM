@@ -4,7 +4,7 @@
 # - An alphanumeric value is expected in a numeric column
 # - A column's value depends on other ones
 def getTableWithComodin():
-	return ["KTPTCNT", "KTPTCOT", "KTPTCPT", "KTPT6WT", "KTPTDOT", "KTPTDJT", "KTPTDIT", "KTPTDMT", "KTPTBCT", "KTPTCLT", "KTPTDLT"]
+	return ["KTPTCNT", "KTPTCOT", "KTPTCPT", "KTPT6WT", "KTPTDOT", "KTPTDJT", "KTPTDIT", "KTPTDMT", "KTPTCLT", "KTPTDLT"]
 # END [getTableWithComodin]
 
 
@@ -21,7 +21,6 @@ def getComodinColumnByTable(table):
 		"KTPTDJT": ["CDPLAN", "CDCOAINT", "VACOSEGU", "VALIMCCI"],
 		"KTPTDIT": ["CDPRODCO", "TCSEGMEN", "INTABULA"],
 		"KTPTDMT": ["CDPRODCO"],
-		"KTPTBCT": ["TCSEGPLA"], 
 		"KTPTCLT": ["CDCOAINT"],
 		"KTPTDLT": ["CDPLAN"],
 		"KTPTCLT": ["CDCOAINT"],
@@ -43,7 +42,6 @@ def getDefaultComodinColumnByTable(table):
 		"KTPTDJT": ["CDPLAN", "CDCOAINT", "VACOSEGU", "VALIMCCI"],
 		"KTPTDIT": ["CDPRODCO", "TCSEGMEN", "INTABULA"],
 		"KTPTDMT": ["CDPRODCO"],
-		"KTPTBCT": ["TCSEGPLA"], 
 		"KTPTCLT": ["CDCOAINT"],
 		"KTPTDLT": ["CDPLAN"]
 	}
@@ -165,7 +163,6 @@ def getIntegerColumnByTable(table):
 		"KTPTDJT": ["CDPLAN", "CDCOAINT"],
 		"KTPTDIT": ["CDPRODCO", "TCSEGMEN", "INTABULA"],
 		"KTPTDMT": ["CDPRODCO"],
-		"KTPTBCT": ["TCSEGPLA"], 
 		"KTPTCLT": ["CDCOAINT"],
 		"KTPTDLT": ["CDPLAN"]
 	}
