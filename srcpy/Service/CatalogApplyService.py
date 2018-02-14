@@ -498,7 +498,7 @@ def updateValues(sqlManager):
 								# If exists, then CDDEDUCI = CDELEMEN
 								result = sqlManager._executeQuery("SELECT CDELEMEN FROM DEDUCIBLE WHERE DSELEMEN = {0}".format(line[1]))
 								if len(result) != 0:
-									sqlManager._executeQuery("UPDATE {table} SET CDDEDUCI = \'{CDELEMEN}\' WHERE VADEDUNA = \'{duna}\'' AND VADEDUIN = \'{duin}\'".format(table = table, CDELEMEN = result[0][0], duna = line[0], duin = line[1]))
+									sqlManager._executeQuery("UPDATE {table} SET CDDEDUCI = \'{CDELEMEN}\' WHERE VADEDUNA = \'{duna}\' AND VADEDUIN = \'{duin}\'".format(table = table, CDELEMEN = result[0][0], duna = line[0], duin = line[1]))
 					except Exception as e:
 						logging.debug("Exception " + str(e))
 						listError.append((table, str(e).replace("\"", "").replace("\'", "")))
