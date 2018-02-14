@@ -490,13 +490,13 @@ def updateValues(sqlManager):
 							if line[0] != "0.000" and line[1] == "0.000":
 								# Check line[0] is Catalog
 								# If exists, then CDDEDUCI = CDELEMEN
-								result = sqlManager._executeQuery("SELECT CDELEMEN FROM DEDUCIBLE WHERE DSELEMEN = {0}".format(line[0]))
+								result = sqlManager._executeQuery("SELECT CDELEMEN FROM DEDUCIBLE WHERE DSELEMEN = \'{0}\'".format(line[0]))
 								if len(result) != 0:
 									sqlManager._executeQuery("UPDATE {table} SET CDDEDUCI = \'{CDELEMEN}\' WHERE VADEDUNA = \'{duna}\' AND VADEDUIN = \'{duin}\'".format(table = table, CDELEMEN = result[0][0], duna = line[0], duin = line[1]))
 							if line[0] == "0.000" and line[1] != "0.000":
 								# Check line[1] is Catalog
 								# If exists, then CDDEDUCI = CDELEMEN
-								result = sqlManager._executeQuery("SELECT CDELEMEN FROM DEDUCIBLE WHERE DSELEMEN = {0}".format(line[1]))
+								result = sqlManager._executeQuery("SELECT CDELEMEN FROM DEDUCIBLE WHERE DSELEMEN = \'{0}\'".format(line[1]))
 								if len(result) != 0:
 									sqlManager._executeQuery("UPDATE {table} SET CDDEDUCI = \'{CDELEMEN}\' WHERE VADEDUNA = \'{duna}\' AND VADEDUIN = \'{duin}\'".format(table = table, CDELEMEN = result[0][0], duna = line[0], duin = line[1]))
 					except Exception as e:
