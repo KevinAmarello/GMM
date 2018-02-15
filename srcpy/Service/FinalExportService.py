@@ -14,6 +14,9 @@ from srcpy.Dictionary import FinalExportDictionary
 import config
 from collections import defaultdict
 
+import gc
+from google.appengine.api.runtime import runtime
+
 EXCEL_FILE_ID = "XLS"
 SCRIPT_ID = "INFO"
 
@@ -67,6 +70,8 @@ def backgroundExport():
 				continue
 			if sheet is not None:
 				logging.debug("Excel sheet opened")
+				logging.info(runtime.memory_usage())
+				gc.collect()
 				# SELECT * FROM <tableName>
 				tableValues = sqlManager._getTable(name[0])
 				########### SCRIPT INFO TREATMENT
@@ -101,9 +106,6 @@ def backgroundExport():
 				listNamesToSign.append(name[0] + ".txt")
 				#listURL.append((name[0], scriptSignedURL))
 	
-
-		
-
 		# Save Files to Storage
 		filename = StorageManager.saveContentXLSToStorage(workbook)
 		zipFile = ZipCreator.createZip(listNamesToSign)
