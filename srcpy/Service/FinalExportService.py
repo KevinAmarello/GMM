@@ -51,10 +51,13 @@ def backgroundExport():
 		excelTemplate = StorageManager.getTemplateVF()
 		excelManager = ExcelManagerClass(excelTemplate, False)
 		workbook = excelManager.getWB()
-		
+
 		# Get All table name
+		logging.debug("Init SQL class")
 		sqlManager = SQLManagerClass()
 		listNames = sqlManager._getAllTablesName()
+
+		gc.collect()
 
 		# Initalizes INFO's files signedURL list
 		listURL = []
@@ -65,55 +68,29 @@ def backgroundExport():
 			# Select sheet in Template
 			try:
 				sheet = workbook.get_sheet_by_name(name[0])
+				logging.info(runtime.memory_usage())
+
+				# Memory Clean
+				excelTemplate = None
+				excelManager = None
 			except Exception as e:
 				logging.debug(str(e))
 				continue
 			if sheet is not None:
-				logging.debug("Excel sheet opened")
+				tableTreatment(sqlManager, name, sheet)
+		
+				logging.debug("Ending Table")
 				logging.info(runtime.memory_usage())
-				gc.collect()
-				# SELECT * FROM <tableName>
-				tableValues = sqlManager._getTable(name[0])
-				########### SCRIPT INFO TREATMENT
-				# Initializes Script INFO File 
-				url = config.BUCKET_VF_INFO_NAME + name[0] + ".txt"
-				fileStorage = StorageManager.openFile(url, "w", ct= "text/plain")
-				lineInfo = ""
-				logging.debug("Txt File created")
-				########### EXCEL TREATMENT
-				# Set Excel cursor to FLoD
-				cursor = ExcelManager.getFirstLineOfData(name[0])
-				# For each line
-				for line in tableValues:
-					excelColCount = 1
-
-					# Prepare SCRIPT INFO line
-					lineInfo += prepareINFOLine(line, name[0])
-					
-					# For each cell
-					for cell in line:
-						excelColCount += 1
-						# Write data into Excel sheet
-						ExcelManager.setCell(sheet, cursor, excelColCount, str(cell))
-					cursor += 1
-				# Write INFO
-				# Delete last break line in file
-				lineInfo = lineInfo[:-2]
-				fileStorage.write(lineInfo)
-				fileStorage.close()
-				
 
 				listNamesToSign.append(name[0] + ".txt")
-				#listURL.append((name[0], scriptSignedURL))
-	
+				gc.collect()
+
 		# Save Files to Storage
 		filename = StorageManager.saveContentXLSToStorage(workbook)
 		zipFile = ZipCreator.createZip(listNamesToSign)
 
-
 		# Generate signed URL to access file
 		excelSignedURL = StorageManager.generateSignedURL(filename)
-
 
 		if zipFile is None:
 			logging.debug("Error occured while creating Zip")
@@ -145,7 +122,44 @@ def backgroundExport():
 # END [backgroundExport]
 
 
+# START [tableTreatment]
+def tableTreatment(sqlManager, name, sheet):
+	# SELECT * FROM <tableName>
+	logging.debug("Getting table")
+	logging.info(runtime.memory_usage())
+	tableValues = sqlManager._getTable(name[0])		
+	########### SCRIPT INFO TREATMENT
+	# Initializes Script INFO File 
+	url = config.BUCKET_VF_INFO_NAME + name[0] + ".txt"
+	fileStorage = StorageManager.openFile(url, "w", ct= "text/plain")
+	lineInfo = ""
+	logging.debug("Txt File created")
+	########### EXCEL TREATMENT
+	# Set Excel cursor to FLoD
+	cursor = ExcelManager.getFirstLineOfData(name[0])
+	# For each line
+	for line in tableValues:
+		excelColCount = 1
+		# Prepare SCRIPT INFO line
+		lineInfo += prepareINFOLine(line, name[0])	
+		# For each cell
+		for cell in line:
+			excelColCount += 1
+			# Write data into Excel sheet
+			ExcelManager.setCell(sheet, cursor, excelColCount, str(cell))
+		cursor += 1
+	
+	# Write INFO
+	# Delete last break line in file
+	lineInfo = lineInfo[:-2]
+	fileStorage.write(lineInfo)
+	del lineInfo
+	del tableValues
+	fileStorage.close()
+# END [tableTreatment]
 
+
+# START [prepareINFOLine]
 def prepareINFOLine(dbLine, table):
 	tmp = ""
 	formatTable = FinalExportDictionary.getFormatByTable(table)
