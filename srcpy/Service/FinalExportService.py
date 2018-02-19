@@ -132,7 +132,7 @@ def tableTreatment(sqlManager, name, sheet):
 	# Initializes Script INFO File 
 	url = config.BUCKET_VF_INFO_NAME + name[0] + ".txt"
 	fileStorage = StorageManager.openFile(url, "w", ct= "text/plain")
-	lineInfo = ""
+	#lineInfo = ""
 	logging.debug("Txt File created")
 	########### EXCEL TREATMENT
 	# Set Excel cursor to FLoD
@@ -141,7 +141,10 @@ def tableTreatment(sqlManager, name, sheet):
 	for line in tableValues:
 		excelColCount = 1
 		# Prepare SCRIPT INFO line
-		lineInfo += prepareINFOLine(line, name[0])	
+		# lineInfo += prepareINFOLine(line, name[0])	
+		fileStorage.write(prepareINFOLine(line, name[0]))
+		if line != tableValues[-1]:
+			fileStorage.write("\r\n")
 		# For each cell
 		for cell in line:
 			excelColCount += 1
@@ -151,9 +154,9 @@ def tableTreatment(sqlManager, name, sheet):
 	
 	# Write INFO
 	# Delete last break line in file
-	lineInfo = lineInfo[:-2]
-	fileStorage.write(lineInfo)
-	del lineInfo
+	#lineInfo = lineInfo[:-2]
+	#fileStorage.write(lineInfo)
+	#del lineInfo
 	del tableValues
 	fileStorage.close()
 # END [tableTreatment]
